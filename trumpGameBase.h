@@ -4,7 +4,6 @@
 #define RANK_COUNT 3
 #define SUIT_COUNT 4
 
-
 typedef enum {
 	spade,
 	clab,

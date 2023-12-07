@@ -1,19 +1,20 @@
 #define _CRT_SECURE_NO_WARNINGS
-#define ESC 0x1b
-#define CSI 0x5b
-#define VN "38;2;156;220;254m"
-#define VV "38;2;181;206;168m"
-#define FN "38;2;220;220;170m"
-#define ick(value) printf("line %3d: \x1b[%s%s\x1b[0m | \x1b[%s%d\x1b[0m | \x1b[%s%s\x1b[0m\n", __LINE__, VN, #value, VV, value, FN, __func__);
-#define cck(character) printf("line %3d: \x1b[%s%s\x1b[0m | \x1b[%s%c\x1b[0m | \x1b[%s%s\x1b[0m\n", __LINE__, VN, #character, VV, character, FN, __func);
-#define sck(string) printf("line %3d: \x1b[%s%s\x1b[0m | \x1b[%s%s\x1b[0m | \x1b[%s%s\x1b[0m\n", __LINE__, VN, #string, VV, string, FN, __func__);
-#define pck(pointer) printf("line %3d: \x1b[%s%s\x1b[0m | \x1b[%s%p\x1b[0m | \x1b[%s%s\x1b[0m\n", __LINE__, VN, #pointer, VV, pointer, FN, __func__);
+//#define ESC 0x1b
+//#define CSI 0x5b
+//#define VN "38;2;156;220;254m"
+//#define VV "38;2;181;206;168m"
+//#define FN "38;2;220;220;170m"
+//#define ick(value) printf("line %3d: \x1b[%s%s\x1b[0m | \x1b[%s%d\x1b[0m | \x1b[%s%s\x1b[0m\n", __LINE__, VN, #value, VV, value, FN, __func__);
+//#define cck(character) printf("line %3d: \x1b[%s%s\x1b[0m | \x1b[%s%c\x1b[0m | \x1b[%s%s\x1b[0m\n", __LINE__, VN, #character, VV, character, FN, __func);
+//#define sck(string) printf("line %3d: \x1b[%s%s\x1b[0m | \x1b[%s%s\x1b[0m | \x1b[%s%s\x1b[0m\n", __LINE__, VN, #string, VV, string, FN, __func__);
+//#define pck(pointer) printf("line %3d: \x1b[%s%s\x1b[0m | \x1b[%s%p\x1b[0m | \x1b[%s%s\x1b[0m\n", __LINE__, VN, #pointer, VV, pointer, FN, __func__);
 
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "debugMacro.h"
 #include "trumpGameBase.h"
 #include "memryGame.h"
 //#define RANK_COUNT 3
@@ -43,23 +44,10 @@
 //	int numOfhaveTrump;
 //}PlayerInfo;
 
-//int MakePlayer(PlayerInfo**);
-
-void MemoryGame(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]);
-
-
-
 int main(void) {
 	//printf("\x1b[31m");
 	//トランプカードの作成
-	scanf("%s");
-	printf("\x1b[A\x1b[2K");
-	for (int i = 1; i <= 10; i++)printf("\x1b[41m\x1b[%d@\x1b[%dC\x1b[42m \x1b[0m\n", i, i);
-	for (int i = 10; i >= 1; i--)printf("\x1b[41m\x1b[%d@\x1b[%dC\x1b[42m \x1b[0m\n", i, i);
-	const char* red = "\x1b[41m\x1b[1@\x1b[1C\x1b[0m";
-	const char* green = "\x1b[42m\x1b[1@\x1b[1C\x1b[0m";
-	const char* yellow = "\x1b[43m\x1b[1@\x1b[1C\x1b[0m";
-	printf("%s%s%s\n", red, green, yellow);
+	
 	char suit[][6] = { "spade", "clab", "heart", "dia" };
 	TrumpInfo trump[RANK_COUNT][SUIT_COUNT] = { 0,(SUIT)0 };
 	for (int i = 0; i < RANK_COUNT; i++) {
@@ -73,9 +61,7 @@ int main(void) {
 
 	//神経衰弱
 	MemoryGame(trump);
-	/*trump[0][4].card_type = joker;
-	trump[1][4].card_type = joker;*/
-
+	
 	return 0;
 }
 
