@@ -1,6 +1,13 @@
 #pragma once
+printf("\x1b[A\x1b[2K");
+for (int i = 1; i <= 10; i++)printf("\x1b[41m\x1b[%d@\x1b[%dC\x1b[42m \x1b[0m\n", i, i);
+for (int i = 10; i >= 1; i--)printf("\x1b[41m\x1b[%d@\x1b[%dC\x1b[42m \x1b[0m\n", i, i);
+const char* red = "\x1b[41m\x1b[1@\x1b[1C\x1b[0m";
+const char* green = "\x1b[42m\x1b[1@\x1b[1C\x1b[0m";
+const char* yellow = "\x1b[43m\x1b[1@\x1b[1C\x1b[0m";
+printf("%s%s%s\n", red, green, yellow);
 
-void MemoryGame(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
+void MemoryGame(void) {
 	srand((unsigned int)time(NULL));
 
 	int currRank = 0;
@@ -14,8 +21,18 @@ void MemoryGame(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
 	PlayerInfo** playerRank = NULL;
 
 	PlayerInfo* member = NULL; //= MakePlayer();
+	char suit[][6] = { "spade", "clab", "heart", "dia" };
+	TrumpInfo trump[RANK_COUNT][SUIT_COUNT] = { 0,(SUIT)0 };
+	for (int i = 0; i < RANK_COUNT; i++) {
+		for (int j = 0; j < SUIT_COUNT; j++) {
+			trump[i][j].cardRank = i;
+			//trump[i][j].cardSuit = (SUIT)j;
+			strcpy(trump[i][j].cardSuit, suit[j]);
+			trump[i][j].isDeploy = false;
+		}
+	}
 
-	numOfPlayers = MakePlayer(&member);
+	numOfPlayers = MakePlayer(&member, true);
 	playerRank = (PlayerInfo**)calloc(numOfPlayers, sizeof(PlayerInfo**));
 	pck(playerRank);
 	//memcpy(playerRank, &member, sizeof(PlayerInfo**));
@@ -80,14 +97,13 @@ void MemoryGame(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
 					PlayerInfo* tmp = playerRank[i];
 					playerRank[i] = playerRank[j];
 					playerRank[j] = tmp;
-
 				}
 			}
 		}
 		/*for (int i = 0; i < numOfPlayers; i++) {
 			sck(playerRank[i]->name);
 		}*/
-
+		RankOfGame();
 		ick(__LINE__);
 		free(member);
 		ick(__LINE__);
@@ -95,3 +111,36 @@ void MemoryGame(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
 		ick(__LINE__);
 	}
 }
+
+//ick((*(*memberPtr + i)).id); //OK
+//ick(( (*memberPtr) + i)->id); //OK  member[i]のアドレス＋アロー
+//ick((*memberPtr)[i].id);     //OK   実体member[i]+ドット
+//ick((&((*memberPtr)[i]))->id);
+//ick(((memberPtr[0]) + i)->id);
+//ick((memberPtr[0])[i].id);
+//ick(memberPtr[0][i].id);
+//member == *memberPtr
+// memberPtr == &member
+//member[i].id
+//(*(member + i)).id
+//(*((*memberPtr) + i)).id
+//(*(( memberPtr) + i))->id
+// a[i][j] == *(a[i] + j)
+//*(a[i] + j) == *(*(a + i) + j)
+
+//演算子の優先順位は　'[]' = '.' = '->' > '*'
+// ick(memberPtr[i]->id)     NG (優先度共に1のため左から評価される)
+//ick((*memberPtr[i]).id);   NG ( '*' < '[]' だから)
+//ick((*(memberPtr[i])).id); NG
+
+//*memberPtr == member
+//member[i] == (*member)[i]
+//member[i].name == ((*member)[i]).name
+//a[i] == *(a + i)
+//(*member)[i].name == (*(*member + i)).name
+//(*a).mem == a->mem * は内側
+// *(a + i) == a[i]      * は外側
+//(*(*member + i)).name == (*(member + i))->name
+
+	/*trump[0][4].card_type = joker;
+	trump[1][4].card_type = joker;*/
