@@ -1,4 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
@@ -28,7 +27,7 @@ typedef struct { //プレイヤーの構造体
 	char name[20];
 	int point;
 	int id;
-	TrumpInfo* deck[SUIT_COUNT * RANK_COUNT];
+	TrumpInfo* deck[2];
 	int numOfhaveTrump;
 }PlayerInfo;
 
@@ -60,17 +59,18 @@ int MakePlayer(PlayerInfo** memberPtr, bool isMultPlayer) {
 		for (int i = 0; i < playerCount; i++) {
 			printf("プレイヤー%dの名前を入力：", i + 1);
 
-			scanf("%s", (*(*memberPtr + i)).name);
-			//sprintf((*(*memberPtr + i)).name, "\x1b[31mPLAYER%d\x1b[0m", i + 1);
-			(*(*memberPtr + i)).id = i;
+			scanf("%s", (*memberPtr)[i].name);
+			//sprintf((*memberPtr)[i].name, "\x1b[31mPLAYER%d\x1b[0m", i + 1);
+			(*memberPtr)[i].id = i;
 		}
 		for (int i = playerCount; i < playerCount + cpuCount; i++) {
-			sprintf((*(*memberPtr + i)).name, "COM%d", i - playerCount + 1);
-			(*(*memberPtr + i)).id = 100 + i;
+			sprintf((*memberPtr)[i].name, "COM%d", i - playerCount + 1);
+			(*memberPtr)[i].id = 100 + i;
+
 		}
 		for (int i = 0; i < playerCount + cpuCount; i++) {
-			printf("member[%d].name is %s\n", i, (*(*memberPtr + i)).name);
-			printf("member[%d].id is %03d\n", i, (*(*memberPtr + i)).id);
+			printf("member[%d].name is %s\n", i, (*memberPtr)[i].name);
+			printf("member[%d].id is %03d\n", i, (*memberPtr)[i].id);
 		}
 	}
 	return playerCount + cpuCount;
@@ -106,19 +106,44 @@ void poker(void) { //ポーカー
 		deck[i]->isDeploy = true;
 	}
 
+	//山札の確認
 	for (int i = 0; i < RANK_COUNT * SUIT_COUNT; i++) {
+		ick(i);
 		ick(deck[i]->cardRank);
 		sck(deck[i]->cardSuit);
 		ick(deck[i]->isDeploy);
+		printf("\n");
 	}
 
-	//プレイヤーの作成
-	numOfMember = MakePlayer(&member, false);
+	numOfMember = MakePlayer(&member, false); //プレイヤーの作成
+	for (int i = 0; i < numOfMember; i++) { //初期ポイントの設定
+		member[i].point = 1000;
+	}
 
+	//プレイヤーの確認
 	for (int i = 0; i < numOfMember; i++) {
 		sck(member[i].name);
 		ick(member[i].id)
 	}
 
+	bool testflag = true;
+
+	//mainloop
+	while (testflag) {
+		TrumpInfo** currMasterDeck = &deck;
+		//ick((*(currMasterDeck + 1))->cardRank);
+		for (int i = 0; i < numOfMember; i++) {
+			for (int j = 0; j < 2; j++) {
+				member[i].deck[j] = *currMasterDeck;
+				ick(i);
+				sck(member[i].name);
+				ick(member[i].deck[j]->cardRank);
+				sck(member[i].deck[j]->cardSuit);
+				printf("\n");
+				currMasterDeck++;
+			}
+		}
+		scanf("%s");
+	}
 }
 
