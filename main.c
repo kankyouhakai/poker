@@ -83,6 +83,7 @@ void poker(void) { //ポーカー
 	char suit[][6] = { "spade", "clab", "heart", "dia" };
 	TrumpInfo trump[RANK_COUNT][SUIT_COUNT] = { 0,(SUIT)0 };
 	TrumpInfo* deck[RANK_COUNT * SUIT_COUNT] = { NULL };
+	TrumpInfo** currMasterDeck = &deck;
 
 	//トランプカードの作成
 	for (int i = 0; i < RANK_COUNT; i++) {
@@ -127,11 +128,10 @@ void poker(void) { //ポーカー
 	}
 
 	bool testflag = true;
-
 	//mainloop
 	while (testflag) {
-		TrumpInfo** currMasterDeck = &deck;
-		//ick((*(currMasterDeck + 1))->cardRank);
+
+		//手札の配布
 		for (int i = 0; i < numOfMember; i++) {
 			for (int j = 0; j < 2; j++) {
 				member[i].deck[j] = *currMasterDeck;
