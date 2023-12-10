@@ -7,6 +7,7 @@
 #define RANK_COUNT 13 //トランプの数字
 #define SUIT_COUNT 4 //トランプの絵札の数
 
+
 typedef enum {
 	spade,
 	clab,
@@ -14,34 +15,34 @@ typedef enum {
 	dia
 }SUIT;
 
-
 typedef struct { //トランプの構造体
-	int cardRank;
+	int cardRank; //数字
 	//SUIT cardSuit;
-	char cardSuit[6];
-	bool isDeploy;
+	char cardSuit[6]; //絵札
+	bool isDeploy; //配置されているか
 
 }TrumpInfo;
 
 typedef struct { //プレイヤーの構造体
-	char name[20];
-	int point;
+	char name[20]; //名前
+	int point; //ポイント
 	int id;
-	TrumpInfo* deck[2];
-	int numOfhaveTrump;
+	TrumpInfo* deck[5]; //手札
+	//int numOfDeck; 
+	//type role; //役
 }PlayerInfo;
 
-int MakePlayer(PlayerInfo**);
+int MakePlayer(PlayerInfo**, bool); //プレイヤー作成
 
-void poker(void);
+void poker(void); //ポーカー実行
+
+void RoleJudge(PlayerInfo*); //役判定
 
 int main(void) {
-
 	poker();
 
 	return 0;
 }
-
 
 int MakePlayer(PlayerInfo** memberPtr, bool isMultPlayer) {
 	int cpuCount = 0;
@@ -54,8 +55,7 @@ int MakePlayer(PlayerInfo** memberPtr, bool isMultPlayer) {
 	scanf("%d", &cpuCount);
 
 	*memberPtr = (PlayerInfo*)calloc(sizeof(PlayerInfo), playerCount + cpuCount);
-
-	if (memberPtr != NULL) {
+	if (*memberPtr != NULL) { //メンバーが正しく作成されたか
 		for (int i = 0; i < playerCount; i++) {
 			printf("プレイヤー%dの名前を入力：", i + 1);
 
@@ -68,10 +68,10 @@ int MakePlayer(PlayerInfo** memberPtr, bool isMultPlayer) {
 			(*memberPtr)[i].id = 100 + i;
 
 		}
-		for (int i = 0; i < playerCount + cpuCount; i++) {
+		/*for (int i = 0; i < playerCount + cpuCount; i++) {
 			printf("member[%d].name is %s\n", i, (*memberPtr)[i].name);
 			printf("member[%d].id is %03d\n", i, (*memberPtr)[i].id);
-		}
+		}*/
 	}
 	return playerCount + cpuCount;
 }
@@ -80,10 +80,10 @@ void poker(void) { //ポーカー
 	srand((unsigned int)time(NULL));
 	PlayerInfo* member = NULL;
 	int numOfMember = 0;
-	char suit[][6] = { "spade", "clab", "heart", "dia" };
+	const char suit[][6] = { "spade", "clab", "heart", "dia" };
 	TrumpInfo trump[RANK_COUNT][SUIT_COUNT] = { 0,(SUIT)0 };
 	TrumpInfo* deck[RANK_COUNT * SUIT_COUNT] = { NULL };
-	TrumpInfo** currMasterDeck = &deck;
+	TrumpInfo** currMasterDeck = deck;
 
 	//トランプカードの作成
 	for (int i = 0; i < RANK_COUNT; i++) {
@@ -108,13 +108,13 @@ void poker(void) { //ポーカー
 	}
 
 	//山札の確認
-	for (int i = 0; i < RANK_COUNT * SUIT_COUNT; i++) {
-		ick(i);
-		ick(deck[i]->cardRank);
-		sck(deck[i]->cardSuit);
-		ick(deck[i]->isDeploy);
-		printf("\n");
-	}
+	//for (int i = 0; i < RANK_COUNT * SUIT_COUNT; i++) {
+	//	ick(i);
+	//	ick(deck[i]->cardRank);
+	//	sck(deck[i]->cardSuit);
+	//	ick(deck[i]->isDeploy);
+	//	printf("\n");
+	//}
 
 	numOfMember = MakePlayer(&member, false); //プレイヤーの作成
 	for (int i = 0; i < numOfMember; i++) { //初期ポイントの設定
@@ -122,28 +122,30 @@ void poker(void) { //ポーカー
 	}
 
 	//プレイヤーの確認
-	for (int i = 0; i < numOfMember; i++) {
-		sck(member[i].name);
-		ick(member[i].id)
-	}
+	//for (int i = 0; i < numOfMember; i++) {
+	//	sck(member[i].name);
+	//	ick(member[i].id)
+	//}
 
 	bool testflag = true;
 	//mainloop
 	while (testflag) {
-
 		//手札の配布
 		for (int i = 0; i < numOfMember; i++) {
-			for (int j = 0; j < 2; j++) {
+			for (int j = 0; j < 5; j++) {
 				member[i].deck[j] = *currMasterDeck;
-				ick(i);
-				sck(member[i].name);
-				ick(member[i].deck[j]->cardRank);
-				sck(member[i].deck[j]->cardSuit);
-				printf("\n");
 				currMasterDeck++;
 			}
+			RoleJudge(&member[i]); //役の判定
 		}
 		scanf("%s");
+
 	}
 }
+
+void RoleJudge(PlayerInfo* player) {
+	sck(player->name);
+	ick(player->deck[0]->cardRank);
+}
+
 
