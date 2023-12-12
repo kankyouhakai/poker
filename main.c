@@ -88,7 +88,7 @@ void poker(void) { //ポーカー
 	//トランプカードの作成
 	for (int i = 0; i < RANK_COUNT; i++) {
 		for (int j = 0; j < SUIT_COUNT; j++) {
-			trump[i][j].cardRank = i;
+			trump[i][j].cardRank = i+1;
 			//trump[i][j].cardSuit = (SUIT)j;
 			strcpy(trump[i][j].cardSuit, suit[j]);
 			trump[i][j].isDeploy = false;
@@ -108,13 +108,12 @@ void poker(void) { //ポーカー
 	}
 
 	//山札の確認
-	//for (int i = 0; i < RANK_COUNT * SUIT_COUNT; i++) {
-	//	ick(i);
-	//	ick(deck[i]->cardRank);
-	//	sck(deck[i]->cardSuit);
-	//	ick(deck[i]->isDeploy);
-	//	printf("\n");
-	//}
+	for (int i = 0; i < RANK_COUNT * SUIT_COUNT; i++) {
+		ick(i);
+		ick(deck[i]->cardRank);
+		sck(deck[i]->cardSuit);
+		printf("\n");
+	}
 
 	numOfMember = MakePlayer(&member, false); //プレイヤーの作成
 	for (int i = 0; i < numOfMember; i++) { //初期ポイントの設定
@@ -146,6 +145,7 @@ void poker(void) { //ポーカー
 void RoleJudge(PlayerInfo* player) {
 	sck(player->name);
 	ick(player->deck[0]->cardRank);
+	sck(player->deck[0]->cardSuit);
 }
 
 

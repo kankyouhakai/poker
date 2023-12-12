@@ -364,3 +364,5 @@ FodyWeavers.xsd
 /poker.vcxproj.filters
 /poker.vcxproj
 /poker.sln
+/.gitignore
+/.gitattributes
