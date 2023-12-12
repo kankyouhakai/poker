@@ -7,7 +7,6 @@
 #define RANK_COUNT 13 //トランプの数字
 #define SUIT_COUNT 4 //トランプの絵札の数
 
-
 typedef enum {
 	spade,
 	clab,
