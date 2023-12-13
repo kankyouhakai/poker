@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include "debuglib.h"
-#define RANK_COUNT 13   //ƒgƒ‰ƒ“ƒv‚Ì”š
-#define SUIT_COUNT 4    //ƒgƒ‰ƒ“ƒv‚ÌŠGD‚Ì”
+#define RANK_COUNT 13   //ãƒˆãƒ©ãƒ³ãƒ—ã®æ•°å­—
+#define SUIT_COUNT 4    //ãƒˆãƒ©ãƒ³ãƒ—ã®çµµæœ­ã®æ•°
 
 typedef enum {
     spade,
@@ -14,28 +14,28 @@ typedef enum {
     dia
 }SUIT;
 
-typedef struct {        //ƒgƒ‰ƒ“ƒv‚Ì\‘¢‘Ì
-    int cardRank;       //”š
+typedef struct {        //ãƒˆãƒ©ãƒ³ãƒ—ã®æ§‹é€ ä½“
+    int cardRank;       //æ•°å­—
     //SUIT cardSuit;
-    char cardSuit[6];   //ŠGD
-    bool isDeploy;      //”z’u‚³‚ê‚Ä‚¢‚é‚©
+    char cardSuit[6];   //çµµæœ­
+    bool isDeploy;      //é…ç½®ã•ã‚Œã¦ã„ã‚‹ã‹
 
 }TrumpInfo;
 
-typedef struct {        //ƒƒ“ƒo[‚Ì\‘¢‘Ì
-    char name[20];      //–¼‘O
-    int point;          //ƒ|ƒCƒ“ƒg
+typedef struct {        //ãƒ¡ãƒ³ãƒãƒ¼ã®æ§‹é€ ä½“
+    char name[20];      //åå‰
+    int point;          //ãƒã‚¤ãƒ³ãƒˆ
     int id;
-    TrumpInfo* deck[5]; //èD
+    TrumpInfo* deck[5]; //æ‰‹æœ­
     //int numOfDeck; 
-    //type role; //–ğ
+    //type role; //å½¹
 }PlayerInfo;
 
-int MakeMember(PlayerInfo**, bool); //ƒƒ“ƒo[ì¬
+int MakeMember(PlayerInfo**, bool); //ãƒ¡ãƒ³ãƒãƒ¼ä½œæˆ
 
-void poker(void);   //ƒ|[ƒJ[Às
+void poker(void);   //ãƒãƒ¼ã‚«ãƒ¼å®Ÿè¡Œ
 
-void RoleJudge(PlayerInfo*); //–ğ”»’è
+void RoleJudge(PlayerInfo*); //å½¹åˆ¤å®š
 
 int main(void) {
     poker();
@@ -47,66 +47,66 @@ int MakeMember(PlayerInfo** memberPtr, bool isMultPlayer) {
     int cpuCount = 0;
     int playerCount = 0;
     if (isMultPlayer) {
-        printf("ƒvƒŒƒCƒ„[‚Ì”‚ğ“ü—ÍF");
+        printf("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ•°ã‚’å…¥åŠ›ï¼š");
         scanf("%d", &playerCount);
     }
     else {
         playerCount = 1;
     }
-    printf("com‚Ìl”‚ğ“ü—ÍF");
+    printf("comã®äººæ•°ã‚’å…¥åŠ›ï¼š");
     scanf("%d", &cpuCount);
 
     *memberPtr = (PlayerInfo*)calloc(sizeof(PlayerInfo), playerCount + cpuCount);
-    if (*memberPtr != NULL) { //ƒƒ“ƒo[‚ª³‚µ‚­ì¬‚³‚ê‚½‚©
+    if (*memberPtr != NULL) { //ãƒ¡ãƒ³ãƒãƒ¼ãŒæ­£ã—ãä½œæˆã•ã‚ŒãŸã‹
         for (int i = 0; i < playerCount; i++) {
-            printf("ƒvƒŒƒCƒ„[%d‚Ì–¼‘O‚ğ“ü—ÍF", i+1);
+            printf("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼%dã®åå‰ã‚’å…¥åŠ›ï¼š", i+1);
 
             scanf("%s", (*memberPtr)[i].name);
             //sprintf((*memberPtr)[i].name, "\x1b[31mPLAYER%d\x1b[0m", i + 1);
-            (*memberPtr)[i].id = i; //ƒvƒŒƒCƒ„[ID‚Ìİ’è
+            (*memberPtr)[i].id = i; //ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼IDã®è¨­å®š
         }
         for (int i = playerCount; i < playerCount + cpuCount; i++) {
             sprintf((*memberPtr)[i].name, "COM%d", i - playerCount + 1);
-            (*memberPtr)[i].id = 100 + i;   //COM‚ÌID‚Ìİ’è
+            (*memberPtr)[i].id = 100 + i;   //COMã®IDã®è¨­å®š
 
         }
     }
     return playerCount + cpuCount;
 }
 
-void poker(void) { //ƒ|[ƒJ[
-    srand((unsigned int)time(NULL));                            //—”‚Ì‰Šú‰»
-    PlayerInfo* member = NULL;                                  //ƒƒ“ƒo[‚ğŠi”[‚·‚é\‘¢‘Ì”z—ñ
-    int numOfMember = 0;                                        //ƒƒ“ƒo[‚Ì”
-    const char suit[][6] = { "spade", "clab", "heart", "dia" }; //ŠGD‚Ìí—Ş
-    TrumpInfo trump[RANK_COUNT][SUIT_COUNT] = { 0,(SUIT)0 };    //ƒgƒ‰ƒ“ƒvƒJ[ƒh‚ğŠi”[‚·‚é\‘¢‘Ì”z—ñ
-    TrumpInfo* deck[RANK_COUNT * SUIT_COUNT] = { NULL };        //RD‚ğŠi”[‚·‚é”z—ñ
-    TrumpInfo** currMasterDeck = deck;                          //RD‚Ìˆê”Ôã‚ÌƒJ[ƒh‚ğŠi”[‚·‚é\‘¢‘Ì•Ï”
+void poker(void) { //ãƒãƒ¼ã‚«ãƒ¼
+    srand((unsigned int)time(NULL));                            //ä¹±æ•°ã®åˆæœŸåŒ–
+    PlayerInfo* member = NULL;                                  //ãƒ¡ãƒ³ãƒãƒ¼ã‚’æ ¼ç´ã™ã‚‹æ§‹é€ ä½“é…åˆ—
+    int numOfMember = 0;                                        //ãƒ¡ãƒ³ãƒãƒ¼ã®æ•°
+    const char suit[][6] = { "spade", "clab", "heart", "dia" }; //çµµæœ­ã®ç¨®é¡
+    TrumpInfo trump[RANK_COUNT][SUIT_COUNT] = { 0,(SUIT)0 };    //ãƒˆãƒ©ãƒ³ãƒ—ã‚«ãƒ¼ãƒ‰ã‚’æ ¼ç´ã™ã‚‹æ§‹é€ ä½“é…åˆ—
+    TrumpInfo* deck[RANK_COUNT * SUIT_COUNT] = { NULL };        //å±±æœ­ã‚’æ ¼ç´ã™ã‚‹é…åˆ—
+    TrumpInfo** currMasterDeck = deck;                          //å±±æœ­ã®ä¸€ç•ªä¸Šã®ã‚«ãƒ¼ãƒ‰ã‚’æ ¼ç´ã™ã‚‹æ§‹é€ ä½“å¤‰æ•°
 
-    //ƒgƒ‰ƒ“ƒvƒJ[ƒh‚Ìì¬
+    //ãƒˆãƒ©ãƒ³ãƒ—ã‚«ãƒ¼ãƒ‰ã®ä½œæˆ
     for (int i = 0; i < RANK_COUNT; i++) {
         for (int j = 0; j < SUIT_COUNT; j++) {
-            trump[i][j].cardRank = i+1;             //ƒgƒ‰ƒ“ƒv‚Ì”š‚ğİ’è
+            trump[i][j].cardRank = i+1;             //ãƒˆãƒ©ãƒ³ãƒ—ã®æ•°å­—ã‚’è¨­å®š
             //trump[i][j].cardSuit = (SUIT)j;
-            strcpy(trump[i][j].cardSuit, suit[j]);  //ƒgƒ‰ƒ“ƒv‚ÌŠGD‚ğİ’è
+            strcpy(trump[i][j].cardSuit, suit[j]);  //ãƒˆãƒ©ãƒ³ãƒ—ã®çµµæœ­ã‚’è¨­å®š
             trump[i][j].isDeploy = false;
         }
     }
     
-    //RD‚Ìì¬
+    //å±±æœ­ã®ä½œæˆ
     for (int i = 0; i < RANK_COUNT * SUIT_COUNT; i++) {
         int randRank = 0;
         int randSuit = 0;
-        do {                                    //ƒ‰ƒ“ƒ_ƒ€‚Éƒgƒ‰ƒ“ƒv‚ğ‘I‚Ô
+        do {                                    //ãƒ©ãƒ³ãƒ€ãƒ ã«ãƒˆãƒ©ãƒ³ãƒ—ã‚’é¸ã¶
             randRank = rand() % RANK_COUNT;
             randSuit = rand() % SUIT_COUNT;
         } while (trump[randRank][randSuit].isDeploy);
 
-        deck[i] = &trump[randRank][randSuit];   //èD‚Éƒgƒ‰ƒ“ƒv‚ğ‰Á‚¦‚é
+        deck[i] = &trump[randRank][randSuit];   //æ‰‹æœ­ã«ãƒˆãƒ©ãƒ³ãƒ—ã‚’åŠ ãˆã‚‹
         deck[i]->isDeploy = true;
     }
 
-    //RD‚ÌŠm”F
+    //å±±æœ­ã®ç¢ºèª
     for (int i = 0; i < RANK_COUNT * SUIT_COUNT; i++) {
         ick(i);
         ick(deck[i]->cardRank);
@@ -114,12 +114,12 @@ void poker(void) { //ƒ|[ƒJ[
         printf("\n");
     }
 
-    numOfMember = MakeMember(&member, false);   //ƒƒ“ƒo[‚Ìì¬
-    for (int i = 0; i < numOfMember; i++) {     //‰Šúƒ|ƒCƒ“ƒg‚Ìİ’è
+    numOfMember = MakeMember(&member, false);   //ãƒ¡ãƒ³ãƒãƒ¼ã®ä½œæˆ
+    for (int i = 0; i < numOfMember; i++) {     //åˆæœŸãƒã‚¤ãƒ³ãƒˆã®è¨­å®š
         member[i].point = 1000;
     }
 
-    //ƒƒ“ƒo[‚ÌŠm”F
+    //ãƒ¡ãƒ³ãƒãƒ¼ã®ç¢ºèª
     //for (int i = 0; i < numOfMember; i++) {
     //	sck(member[i].name);
     //	ick(member[i].id)
@@ -128,12 +128,12 @@ void poker(void) { //ƒ|[ƒJ[
     bool testflag = true;
     //mainloop
     while (testflag) {
-        for (int i = 0; i < numOfMember; i++) { //èD‚Ì”z•z
+        for (int i = 0; i < numOfMember; i++) { //æ‰‹æœ­ã®é…å¸ƒ
             for (int j = 0; j < 5; j++) {
                 member[i].deck[j] = *currMasterDeck;
                 currMasterDeck++;
             }
-            RoleJudge(&member[i]);  //–ğ‚Ì”»’è
+            RoleJudge(&member[i]);  //å½¹ã®åˆ¤å®š
         }
         scanf("%s");
 
@@ -141,9 +141,9 @@ void poker(void) { //ƒ|[ƒJ[
 }
 
 void RoleJudge(PlayerInfo* member) {
-    sck(member->name);              //ƒƒ“ƒo[–¼‚ğ•\¦
-    ick(member->deck[0]->cardRank); //0–‡–Ú‚ÌèD‚Ì”š‚ğ•\¦
-    sck(member->deck[0]->cardSuit); //0–‡–Ú‚ÌèD‚ÌŠG•¿‚ğ•\¦
+    sck(member->name);              //ãƒ¡ãƒ³ãƒãƒ¼åã‚’è¡¨ç¤º
+    ick(member->deck[0]->cardRank); //0æšç›®ã®æ‰‹æœ­ã®æ•°å­—ã‚’è¡¨ç¤º
+    sck(member->deck[0]->cardSuit); //0æšç›®ã®æ‰‹æœ­ã®çµµæŸ„ã‚’è¡¨ç¤º
 }
 
 
