@@ -25,17 +25,21 @@ typedef struct {        //トランプの構造体
 typedef struct {        //メンバーの構造体
     char name[20];      //名前
     int point;          //ポイント
+    int chip;           //チップ
     int id;
-    TrumpInfo* deck[5]; //手札
+    TrumpInfo* deck[2]; //手札
     //int numOfDeck; 
     //type role; //役
 }PlayerInfo;
 
-int MakeMember(PlayerInfo**, bool); //メンバー作成
+int MakeMember(PlayerInfo**); //メンバー作成
 
 void poker(void);   //ポーカー実行
 
-void RoleJudge(PlayerInfo*); //役判定
+TrumpInfo* ChoiceTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]);
+
+void RoleJudge(PlayerInfo*, TrumpInfo* communityCard[5]); //役判定
+
 
 int main(void) {
     poker();
@@ -43,32 +47,26 @@ int main(void) {
     return 0;
 }
 
-int MakeMember(PlayerInfo** memberPtr, bool isMultPlayer) {
+int MakeMember(PlayerInfo** memberPtr) {
     int cpuCount = 0;
-    int playerCount = 0;
-    if (isMultPlayer) {
-        printf("プレイヤーの数を入力：");
-        scanf("%d", &playerCount);
-    }
-    else {
-        playerCount = 1;
-    }
+    int playerCount = 1;
+    int initChip = 0;
     printf("comの人数を入力：");
     scanf("%d", &cpuCount);
 
     *memberPtr = (PlayerInfo*)calloc(sizeof(PlayerInfo), playerCount + cpuCount);
     if (*memberPtr != NULL) { //メンバーが正しく作成されたか
-        for (int i = 0; i < playerCount; i++) {
-            printf("プレイヤー%dの名前を入力：", i+1);
+        printf("プレイヤーの名前を入力：");
+        scanf("%s", (*memberPtr)[0].name);
+        printf("チップの初期枚数を入力：");
+        scanf("%d", &initChip);
+        (*memberPtr)[0].id = 0; //プレイヤーIDの設定
+        (*memberPtr)[0].chip = initChip;
 
-            scanf("%s", (*memberPtr)[i].name);
-            //sprintf((*memberPtr)[i].name, "\x1b[31mPLAYER%d\x1b[0m", i + 1);
-            (*memberPtr)[i].id = i; //プレイヤーIDの設定
-        }
         for (int i = playerCount; i < playerCount + cpuCount; i++) {
             sprintf((*memberPtr)[i].name, "COM%d", i - playerCount + 1);
             (*memberPtr)[i].id = 100 + i;   //COMのIDの設定
-
+            (*memberPtr)[i].chip = initChip;
         }
     }
     return playerCount + cpuCount;
@@ -80,8 +78,9 @@ void poker(void) { //ポーカー
     int numOfMember = 0;                                        //メンバーの数
     const char suit[][6] = { "spade", "clab", "heart", "dia" }; //絵札の種類
     TrumpInfo trump[RANK_COUNT][SUIT_COUNT] = { 0,(SUIT)0 };    //トランプカードを格納する構造体配列
-    TrumpInfo* deck[RANK_COUNT * SUIT_COUNT] = { NULL };        //山札を格納する配列
-    TrumpInfo** currMasterDeck = deck;                          //山札の一番上のカードを格納する構造体変数
+    TrumpInfo* communityCard[5] = { NULL };
+    int round = 1;
+    int game = 1;
 
     //トランプカードの作成
     for (int i = 0; i < RANK_COUNT; i++) {
@@ -92,32 +91,8 @@ void poker(void) { //ポーカー
             trump[i][j].isDeploy = false;
         }
     }
-    
-    //山札の作成
-    for (int i = 0; i < RANK_COUNT * SUIT_COUNT; i++) {
-        int randRank = 0;
-        int randSuit = 0;
-        do {                                    //ランダムにトランプを選ぶ
-            randRank = rand() % RANK_COUNT;
-            randSuit = rand() % SUIT_COUNT;
-        } while (trump[randRank][randSuit].isDeploy);
 
-        deck[i] = &trump[randRank][randSuit];   //手札にトランプを加える
-        deck[i]->isDeploy = true;
-    }
-
-    //山札の確認
-    for (int i = 0; i < RANK_COUNT * SUIT_COUNT; i++) {
-        ick(i);
-        ick(deck[i]->cardRank);
-        sck(deck[i]->cardSuit);
-        printf("\n");
-    }
-
-    numOfMember = MakeMember(&member, false);   //メンバーの作成
-    for (int i = 0; i < numOfMember; i++) {     //初期ポイントの設定
-        member[i].point = 1000;
-    }
+    numOfMember = MakeMember(&member);  //メンバーの作成
 
     //メンバーの確認
     //for (int i = 0; i < numOfMember; i++) {
@@ -128,22 +103,57 @@ void poker(void) { //ポーカー
     bool testflag = true;
     //mainloop
     while (testflag) {
-        for (int i = 0; i < numOfMember; i++) { //手札の配布
-            for (int j = 0; j < 5; j++) {
-                member[i].deck[j] = *currMasterDeck;
-                currMasterDeck++;
-            }
-            RoleJudge(&member[i]);  //役の判定
-        }
-        scanf("%s");
+        if (round == 1) {
+            //手札の配布
+            for (int i = 0; i < numOfMember; i++) {
+                for (int j = 0; j < sizeof(member[i].deck) / sizeof(TrumpInfo*); j++) {
+                    member[i].deck[j] = ChoiceTrump(trump);
+                }
 
+            }
+            //プリフロップ
+
+        }
+        //コミュニティカードの配布
+        int i = 0;
+        do {
+            communityCard[i] = ChoiceTrump(trump);
+            i++;
+        } while (communityCard[2] == NULL);
+       
+        
+        //役の判定
+        RoleJudge(&member[0], communityCard);
+
+
+        scanf("%s");
     }
 }
 
-void RoleJudge(PlayerInfo* member) {
+TrumpInfo* ChoiceTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
+    int randRank = 0;
+    int randSuit = 0;
+    do {                                    //ランダムにトランプを選ぶ
+        randRank = rand() % RANK_COUNT;
+        randSuit = rand() % SUIT_COUNT;
+    } while (trump[randRank][randSuit].isDeploy);
+    trump[randRank][randSuit].isDeploy = true;
+
+    return &trump[randRank][randSuit];
+}
+
+void RoleJudge(PlayerInfo* member, TrumpInfo* communityCard[5]) {
     sck(member->name);              //メンバー名を表示
     ick(member->deck[0]->cardRank); //0枚目の手札の数字を表示
     sck(member->deck[0]->cardSuit); //0枚目の手札の絵柄を表示
+    ick(member->deck[1]->cardRank);
+    sck(member->deck[1]->cardSuit);
+    printf("\n");
+    for (int i = 0; i < 5; i++) {
+        pck(communityCard[i]);
+    }
+    printf("\n");
+
 }
 
 
