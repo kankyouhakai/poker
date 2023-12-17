@@ -30,32 +30,34 @@ typedef struct {        //メンバーの構造体
     TrumpInfo* deck[2]; //手札
     //int numOfDeck; 
     //type role; //役
-}PlayerInfo;
+}MemberInfo;
 
 
-int MakeMember(PlayerInfo**); //メンバー作成
+int MakeMember(MemberInfo**); //メンバー作成
 
 void poker(void);   //ポーカー実行
 
 TrumpInfo* ChoiceTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]); //手札，コミュニティカードの選択
 
-void RoleJudge(PlayerInfo*, TrumpInfo* communityCard[5]); //役判定
+void RoleJudge(MemberInfo*, TrumpInfo* communityCard[5]); //役判定
+
 
 
 int main(void) {
-    
+
     poker();
+
     return 0;
 }
 
-int MakeMember(PlayerInfo** memberPtr) {
+int MakeMember(MemberInfo** memberPtr) {
     int comCount = 0;           //COMの人数
     int playerCount = 1;        //プレイヤーの人数(1人固定)
     int initChip = 0;           //チップの初期枚数
     printf("comの人数を入力：");
     scanf("%d", &comCount);
 
-    *memberPtr = (PlayerInfo*)calloc(sizeof(PlayerInfo), playerCount + comCount);
+    *memberPtr = (MemberInfo*)calloc(sizeof(MemberInfo), playerCount + comCount);
     if (*memberPtr != NULL) { //メンバーが正しく作成されたか
         printf("プレイヤーの名前を入力：");
         scanf("%s", (*memberPtr)[0].name);
@@ -79,9 +81,9 @@ int MakeMember(PlayerInfo** memberPtr) {
 
 void poker(void) { //ポーカー
     srand((unsigned int)time(NULL));                            //乱数の初期化
-    PlayerInfo* member = NULL;                                  //メンバーを格納する構造体配列
+    MemberInfo* members = NULL;                                  //メンバーを格納する構造体配列
     int numMembers = 0;                                        //メンバーの数
-    const char suit[][6] = { "spade", "heart", "dia", "clab" }; //絵札の種類
+    const char suit[][15] = { "spade", "\x1b[31mheart\x1b[0m", "\x1b[31mdia\x1b[0m", "clab" }; //絵札の種類
     TrumpInfo trump[RANK_COUNT][SUIT_COUNT] = { 0 };            //トランプカードを格納する構造体配列
     TrumpInfo* communityCard[5] = { NULL };                     //コミュニティカードを格納する構造体配列
     int round = 1;                                              //ラウンド
@@ -99,7 +101,7 @@ void poker(void) { //ポーカー
             //strcpy(trump[i][j].cardSuit, suit[j]);  //トランプの絵札を設定
         }
     }
-    numMembers = MakeMember(&member);  //メンバーの作成
+    numMembers = MakeMember(&members);  //メンバーの作成
 
     //メンバーの確認
     //for (int i = 0; i < numOfMember; i++) {
@@ -109,41 +111,51 @@ void poker(void) { //ポーカー
 
     bool testflag = true;
     //mainloop
-    while (testflag) {
-        while (game) {
-            //手札の配布
-            for (int i = 0; i < numMembers; i++) {                                     //配布されるメンバー
-                for (int j = 0; j < sizeof(member[i].deck) / sizeof(TrumpInfo*); j++) { //2枚配布する
-                    member[i].deck[j] = ChoiceTrump(trump);
-                }
-                sck(suit[member[0].deck[0]->cardSuit]);
-
+    while (game) {
+        //手札の配布
+        for (int i = 0; i < numMembers; i++) {                                     //配布されるメンバー
+            for (int j = 0; j < sizeof(members[i].deck) / sizeof(TrumpInfo*); j++) { //2枚配布する
+                members[i].deck[j] = ChoiceTrump(trump);
             }
-            for(round = 1; round <= 4; round++){
-
-                //チップを賭ける
-
-                if (round == 4) {
-                    //ショーダウン
-                    for (int i = 0; i < numMembers; i++) {
-                        ick(round);
-                        RoleJudge(&member[i], communityCard);
-                    }
-                }
-                else {
-                    //コミュニティカードの配布
-                    do {
-                        communityCard[numCommCards] = ChoiceTrump(trump);
-                        numCommCards++;
-                    } while (communityCard[2] == NULL);
-
-                    RoleJudge(&member[0], communityCard);
-                }
-
-            }
-            scanf("%s");
         }
-       
+        for(round = 1; round <= 4; round++){
+            //ベッティングラウンド
+            {
+                   
+            }
+
+            if (round == 4) {
+                //ショーダウン
+                for (int i = 0; i < numMembers; i++) {
+                    RoleJudge(&members[i], communityCard);
+                    game = false;
+                }
+            }
+            else {
+                //コミュニティカードの配布
+                do {
+                    communityCard[numCommCards] = ChoiceTrump(trump);
+                    numCommCards++;
+                } while (communityCard[2] == NULL);
+                RoleJudge(&members[0], communityCard);
+            }
+        }
+    }
+    
+    int choice = 0;
+    scanf(" %c", &choice);
+    ick(choice);
+    switch (choice) {
+    case(1):
+        cck(choice);
+        break;
+
+    case(2):
+        cck(choice);
+        break;
+
+    default:
+        break;
     }
 }
 
@@ -159,8 +171,10 @@ TrumpInfo* ChoiceTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
     return &trump[randomRank][randomSuit];              //選ばれたトランプのアドレスを返す
 }
 
-void RoleJudge(PlayerInfo* member, TrumpInfo* communityCard[5]) {
-    sck(member->name);
-    ick(member->deck[0]->cardSuit);
+void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
+    //sck(member->name);
+    //ick(member->deck[0]->cardRank);
+    //ick(member->deck[0]->cardSuit);
+    //printf("\n");
 
 }
