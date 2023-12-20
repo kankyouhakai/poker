@@ -41,7 +41,7 @@ TrumpInfo* ChoiceTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]); //èDCƒRƒ~ƒ…ƒ
 
 void RoleJudge(MemberInfo*, TrumpInfo* communityCard[5]); //–ğ”»’è
 
-
+void comMove(MemberInfo*);
 
 int main(void) {
 
@@ -120,10 +120,16 @@ void poker(void) { //ƒ|[ƒJ[
         }
         for(round = 1; round <= 4; round++){
             //ƒxƒbƒeƒBƒ“ƒOƒ‰ƒEƒ“ƒh
-            {
-                   
-            }
 
+            for (int i = 0; i < numMembers; i++) {
+                if (members[i].id / 100 == 1) {
+                    comMove(&members[1]);
+                }
+                else {
+                    ;
+                }
+
+            }
             if (round == 4) {
                 //ƒVƒ‡[ƒ_ƒEƒ“
                 for (int i = 0; i < numMembers; i++) {
@@ -176,5 +182,11 @@ void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
     //ick(member->deck[0]->cardRank);
     //ick(member->deck[0]->cardSuit);
     //printf("\n");
+
+}
+
+void comMove(MemberInfo* com) {
+    sck(com->name);
+    ick(com->deck[0]->cardRank);
 
 }
