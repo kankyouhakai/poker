@@ -28,6 +28,7 @@ typedef struct {        //ƒƒ“ƒo[‚Ì\‘¢‘Ì
     int chip;           //ƒ`ƒbƒv
     int id;
     TrumpInfo* deck[2]; //èD
+    int ownPot;
     //int numOfDeck; 
     //type role; //–ğ
 }MemberInfo;
@@ -41,7 +42,6 @@ TrumpInfo* ChoiceTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]); //èDCƒRƒ~ƒ…ƒ
 
 void RoleJudge(MemberInfo*, TrumpInfo* communityCard[5]); //–ğ”»’è
 
-void comMove(MemberInfo*);
 
 int main(void) {
 
@@ -82,59 +82,78 @@ int MakeMember(MemberInfo** memberPtr) {
 void poker(void) { //ƒ|[ƒJ[
     srand((unsigned int)time(NULL));                            //—”‚Ì‰Šú‰»
     MemberInfo* members = NULL;                                  //ƒƒ“ƒo[‚ğŠi”[‚·‚é\‘¢‘Ì”z—ñ
-    int numMembers = 0;                                        //ƒƒ“ƒo[‚Ì”
+    int numMembers = 0;
+    MemberInfo* smallBlind;
+    MemberInfo* bigBlind;                                     //ƒƒ“ƒo[‚Ì”
     const char suit[][15] = { "spade", "\x1b[31mheart\x1b[0m", "\x1b[31mdia\x1b[0m", "clab" }; //ŠGD‚Ìí—Ş
     TrumpInfo trump[RANK_COUNT][SUIT_COUNT] = { 0 };            //ƒgƒ‰ƒ“ƒvƒJ[ƒh‚ğŠi”[‚·‚é\‘¢‘Ì”z—ñ
     TrumpInfo* communityCard[5] = { NULL };                     //ƒRƒ~ƒ…ƒjƒeƒBƒJ[ƒh‚ğŠi”[‚·‚é\‘¢‘Ì”z—ñ
     int round = 1;                                              //ƒ‰ƒEƒ“ƒh
     int game = 1;                                               //ƒQ[ƒ€
     int numCommCards = 0;
-    int ante = 0;
+    int ante = 50;
     int blind = 0;
+
+
 
     //ƒgƒ‰ƒ“ƒvƒJ[ƒh‚Ìì¬
     for (int i = 0; i < RANK_COUNT; i++) {
         for (int j = 0; j < SUIT_COUNT; j++) {
-            trump[i][j].cardRank = i+1;             //ƒgƒ‰ƒ“ƒv‚Ì”š‚ğİ’è
+            trump[i][j].cardRank = i + 1;             //ƒgƒ‰ƒ“ƒv‚Ì”š‚ğİ’è
             trump[i][j].cardSuit = (SUIT)j;         //ƒgƒ‰ƒ“ƒv‚ÌŠGD‚ğİ’è
             trump[i][j].isDeploy = false;
             //strcpy(trump[i][j].cardSuit, suit[j]);  //ƒgƒ‰ƒ“ƒv‚ÌŠGD‚ğİ’è
         }
     }
     numMembers = MakeMember(&members);  //ƒƒ“ƒo[‚Ìì¬
+    smallBlind = members;
+    bigBlind = smallBlind + 1;
 
-    //ƒƒ“ƒo[‚ÌŠm”F
-    //for (int i = 0; i < numOfMember; i++) {
-    //	sck(member[i].name);
-    //	ick(member[i].id)
-    //}
-
-    bool testflag = true;
-    //mainloop
+   //mainloop
     while (game) {
+
         //èD‚Ì”z•z
         for (int i = 0; i < numMembers; i++) {                                     //”z•z‚³‚ê‚éƒƒ“ƒo[
             for (int j = 0; j < sizeof(members[i].deck) / sizeof(TrumpInfo*); j++) { //2–‡”z•z‚·‚é
                 members[i].deck[j] = ChoiceTrump(trump);
             }
         }
-        for(round = 1; round <= 4; round++){
+        for (round = 1; round <= 4; round++) {
             //ƒxƒbƒeƒBƒ“ƒOƒ‰ƒEƒ“ƒh
-
             for (int i = 0; i < numMembers; i++) {
+                bigBlind->ownPot = (bigBlind->chip >= ante ? ante : bigBlind->chip);
+                bigBlind->chip -= bigBlind->ownPot;
+                    
+                
+                ick(bigBlind->ownPot);
+
+                smallBlind->ownPot = (smallBlind->chip >= (ante / 2) ? ante / 2 : smallBlind->chip);
+                smallBlind->chip -= smallBlind->ownPot;
+                ick(smallBlind->ownPot);
+                //scanf("%s");
                 if (members[i].id / 100 == 1) {
-                    comMove(&members[1]);
+                    printf("%s\n", "\x1b[31mcpumove\x1b[0m");
+                    ick(members[i].id);
+
+
+
+                    printf("\n");
                 }
                 else {
-                    ;
-                }
+                    printf("%s\n", "playermove");
+                    ick(members[i].id);
 
+
+                    printf("\n");
+                }
             }
+
+
+
             if (round == 4) {
                 //ƒVƒ‡[ƒ_ƒEƒ“
                 for (int i = 0; i < numMembers; i++) {
                     RoleJudge(&members[i], communityCard);
-                    game = false;
                 }
             }
             else {
@@ -146,18 +165,27 @@ void poker(void) { //ƒ|[ƒJ[
                 RoleJudge(&members[0], communityCard);
             }
         }
+        //ƒuƒ‰ƒCƒ“ƒh‚Ì•ÏX
+        //smallBlind = members + (game % numMembers);
+        //bigBlind = members + ((game+1) % numMembers);
+
+        smallBlind = &members[game % numMembers];
+        bigBlind = &members[game % numMembers];
+        game++;
+     
+        scanf("%s");
     }
-    
+
     int choice = 0;
-    scanf(" %c", &choice);
+    scanf("%d", &choice);
     ick(choice);
     switch (choice) {
     case(1):
-        cck(choice);
+        ick(choice);
         break;
 
     case(2):
-        cck(choice);
+        ick(choice);
         break;
 
     default:
@@ -185,8 +213,3 @@ void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
 
 }
 
-void comMove(MemberInfo* com) {
-    sck(com->name);
-    ick(com->deck[0]->cardRank);
-
-}
