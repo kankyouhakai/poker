@@ -179,7 +179,7 @@ void poker(void) { //ポーカー
         sck(smallBlind->name);
         sck(bigBlind->name);
     }
-
+    
     int choice = 0;
     scanf("%d", &choice);
     ick(choice);
