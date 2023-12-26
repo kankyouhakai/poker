@@ -8,3 +8,5 @@
 #define cck(character) printf("line %3d: \x1b[%s%s\x1b[0m | \x1b[%s%c\x1b[0m | \x1b[%s%s\x1b[0m\n", __LINE__, VN, #character, VV, character, FN, __func__)
 #define sck(string) printf("line %3d: \x1b[%s%s\x1b[0m | \x1b[%s%s\x1b[0m | \x1b[%s%s\x1b[0m\n", __LINE__, VN, #string, VV, string, FN, __func__)
 #define pck(pointer) printf("line %3d: \x1b[%s%s\x1b[0m | \x1b[%s%p\x1b[0m | \x1b[%s%s\x1b[0m\n", __LINE__, VN, #pointer, VV, pointer, FN, __func__)
+#define ck() printf("line %3d: \x1b[%s%s\x1b[0m\n", __LINE__, FN, __func__);
+#define stop() do{getchar();getchar();}while(false);
