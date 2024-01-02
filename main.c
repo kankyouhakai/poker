@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "debuglib.h"
+#include <math.h>
 #define RANK_COUNT 13   //ƒgƒ‰ƒ“ƒv‚Ì”š
 #define SUIT_COUNT 4    //ƒgƒ‰ƒ“ƒv‚ÌŠGD‚Ì”
 
@@ -51,12 +52,18 @@ TrumpInfo* ChoiceTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]); //èDCƒRƒ~ƒ…ƒ
 
 void RoleJudge(MemberInfo*, TrumpInfo* communityCard[5]); //–ğ”»’è
 
-void NextMember(MemberInfo** memberPtr, int count, MemberInfo* begin);
+void NextMember(MemberInfo** memberPtr, int count, MemberInfo* begin, MemberInfo* end);
 
 bool IsBettinground(MemberInfo* members, int count);
 
+void Pay(MemberInfo* member, int chip);
+
+int MoveChip(int* source, /*int* dest,*/ int amount);
+
+
 int main(void) {
-    
+    srand((unsigned int)time(NULL));                            //—”‚Ì‰Šú‰»
+    stop();
     poker();
 
     return 0;
@@ -68,7 +75,7 @@ int MakeMember(MemberInfo** memberPtr) {
     int initChip = 0;           //ƒ`ƒbƒv‚Ì‰Šú–‡”
     printf("com‚Ìl”‚ğ“ü—ÍF");
     scanf("%d", &comCount);
-    *memberPtr = (MemberInfo*)calloc(sizeof(MemberInfo), playerCount + comCount + 1);
+    *memberPtr = (MemberInfo*)calloc(sizeof(MemberInfo), playerCount + comCount);
     if (*memberPtr != NULL) { //ƒƒ“ƒo[‚ª³‚µ‚­ì¬‚³‚ê‚½‚©
         printf("ƒvƒŒƒCƒ„[‚Ì–¼‘O‚ğ“ü—ÍF");
         scanf("%s", (*memberPtr)[0].name);
@@ -95,9 +102,9 @@ int MakeMember(MemberInfo** memberPtr) {
     return playerCount + comCount;
 }
 
-void NextMember(MemberInfo** memberPtr, int count, MemberInfo* begin) {
+void NextMember(MemberInfo** memberPtr, int count, MemberInfo* begin, MemberInfo* end) {
     for (int i = 0; i < count; i++) {
-        if ((*memberPtr + 1)->id == 0) {
+        if ((*memberPtr + 1) == end) {
             *memberPtr = begin;
         }
         else {
@@ -107,12 +114,12 @@ void NextMember(MemberInfo** memberPtr, int count, MemberInfo* begin) {
 }
 
 void poker(void) { //ƒ|[ƒJ[
-    srand((unsigned int)time(NULL));                            //—”‚Ì‰Šú‰»
     MemberInfo* members = NULL;                                  //ƒƒ“ƒo[‚ğŠi”[‚·‚é\‘¢‘Ì”z—ñ
     int numMembers = 0;
-    MemberInfo* smallBlind;
-    MemberInfo* bigBlind;                                   //ƒƒ“ƒo[‚Ì”
-    MemberInfo* currBetMember;
+    MemberInfo* smallBlind = NULL;
+    MemberInfo* bigBlind = NULL;                                   //ƒƒ“ƒo[‚Ì”
+    MemberInfo* currBetMember = NULL;
+    MemberInfo* winner = NULL;
     const char suit[][15] = { "spade", "\x1b[31mheart\x1b[0m", "\x1b[31mdia\x1b[0m", "clab" }; //ŠGD‚Ìí—Ş
     TrumpInfo trump[RANK_COUNT][SUIT_COUNT] = { 0 };            //ƒgƒ‰ƒ“ƒvƒJ[ƒh‚ğŠi”[‚·‚é\‘¢‘Ì”z—ñ
     TrumpInfo* communityCard[5] = { NULL };                     //ƒRƒ~ƒ…ƒjƒeƒBƒJ[ƒh‚ğŠi”[‚·‚é\‘¢‘Ì”z—ñ
@@ -120,10 +127,13 @@ void poker(void) { //ƒ|[ƒJ[
     int game = 0;                                               //ƒQ[ƒ€
     int numCommCards = 0;
     int ante = 50;
-    int blind = 0;
+    int blind = ante*2;
+    int callChip = 0;
+    int pot = 0;
     BET choiceAct = 0;
-    const char* betAct[] = { "bet", "check", "call", "raise", "fold" };
-
+    const char* action[] = { "bet", "check", "call", "raise", "fold" };
+    int stake = 0;
+    
     //ƒgƒ‰ƒ“ƒvƒJ[ƒh‚Ìì¬
     for (int i = 0; i < RANK_COUNT; i++) {
         for (int j = 0; j < SUIT_COUNT; j++) {
@@ -135,52 +145,140 @@ void poker(void) { //ƒ|[ƒJ[
     }
     numMembers = MakeMember(&members);  //ƒƒ“ƒo[‚Ìì¬
 
+    //nƒoƒCƒg‚Æ‚ñ‚ÅmƒoƒCƒg“Ç‚ŞŠÖ”(\‘¢‘Ì”z—ñ—p)
+    sck((char*)((char*)&members[0].name + 2 * sizeof(MemberInfo)));
+    sck(members[2].name);
+    
+    stop();
+    smallBlind = &members[(game) % numMembers];
+    bigBlind = &members[(game + 1) % numMembers];
+    currBetMember = &members[(game + 2) % numMembers];
+
     //members[numMembers]; //ƒƒ“ƒo[‚ÌI’[
+
     //mainloop
-    while (1) {
-        game++;
-
-        //ƒuƒ‰ƒCƒ“ƒh‚·‚él‚Ìİ’è
-        smallBlind = &members[(game-1) % numMembers];
-        bigBlind = &members[(game) % numMembers];
-        currBetMember = &members[(game + 1) % numMembers];
-
-        //ƒrƒbƒOƒuƒ‰ƒCƒ“ƒh
-        bigBlind->ownPot = (bigBlind->chip >= ante ? ante : bigBlind->chip);
-        bigBlind->chip = (bigBlind->chip >= ante ? bigBlind->chip - ante : 0);
-        ick(bigBlind->ownPot);
+    for(game = 1; true; game++) {
+        ick(game);
+        //ƒAƒ“ƒeƒBiÀ‘•‚·‚é‚©‚Í–¢Šm’èj
+        printf("ƒAƒ“ƒeƒBF%d\n", ante);
+        for (int i = 0; i < numMembers; i++) {
+            //Pay(&members[i], ante);
+            pot += MoveChip(&(members[i].chip), ante);
+        }
 
         //ƒXƒ‚[ƒ‹ƒuƒ‰ƒCƒ“ƒh
-        smallBlind->ownPot = (smallBlind->chip >= (ante / 2) ? ante / 2 : smallBlind->chip);
-        smallBlind->chip = (smallBlind->chip >= (ante / 2) ? smallBlind->chip - (ante / 2) : 0);
+        //Pay(smallBlind, blind);
+        smallBlind->ownPot = MoveChip(&(smallBlind->chip), blind);
         ick(smallBlind->ownPot);
 
+        //ƒrƒbƒOƒuƒ‰ƒCƒ“ƒh
+        //Pay(bigBlind, 2 * blind);
+        bigBlind->ownPot = MoveChip(&(bigBlind->chip), 2 * blind);
+        ick(bigBlind->ownPot);
+
+        stop();
         //èD‚Ì”z•z
         for (int i = 0; i < numMembers; i++) {                                     //”z•z‚³‚ê‚éƒƒ“ƒo[
             for (int j = 0; j < sizeof(members[i].deck) / sizeof(TrumpInfo*); j++) { //2–‡”z•z‚·‚é
                 members[i].deck[j] = ChoiceTrump(trump);
             }
         }
+        printf("%s - %d\n", suit[members[0].deck[0]->cardSuit], members[0].deck[0]->cardRank);
+        printf("%s - %d\n", suit[members[0].deck[1]->cardSuit], members[0].deck[1]->cardRank);
+
+        stop();
         //ƒ‰ƒEƒ“ƒhŠJn
         for (round = 1; round <= 4; round++) {
             ick(round);
             //ƒxƒbƒeƒBƒ“ƒOƒ‰ƒEƒ“ƒh
             do{
-                
-                currBetMember->ownPot = 20;
-                ick(IsBettinground(members, numMembers));
-                NextMember(&currBetMember, 1, members);
-            } while (!IsBettinground(members, numMembers));
+                //ƒxƒbƒh‚³‚ê‚Ä‚¢‚È‚¢‚È‚çƒxƒbƒhCƒ`ƒFƒbƒN
+                // ƒxƒbƒh‚ÌÅ’áŠz‚ÍBB
+                //ƒxƒbƒh‚³‚ê‚Ä‚¢‚é‚È‚çƒR[ƒ‹CƒŒƒCƒYCƒtƒH[ƒ‹ƒh
+                // ƒR[ƒ‹‚Í’¼‘O‚Ìƒƒ“ƒo[‚Ìƒ|ƒbƒg‚É‡‚í‚¹‚é
+                //ƒxƒbƒeƒBƒ“ƒOƒ‰ƒEƒ“ƒh‚ÌğŒ‚Íu‘Sˆõ‚Ì“q‚¯‹à‚Ìˆê’vvÈuƒƒ“ƒo[‚ªˆêü‚µ‚Ä‚¢‚év‚±‚Æ
+                //Ëfor•¶‚Ìˆê•Ï”H
+
+                //‚»‚ê‚¼‚ê‚Ìƒ|ƒbƒg‚ÌŠm”F
+                for (int i = 0; i < numMembers; i++) {
+                    ick(members[i].ownPot);
+                }
+
+                //ƒvƒŒƒCƒ„[‚ÌèD‚ÌŠm”F
+                for (int i = 0; i < numCommCards; i++) {
+                    printf("%s - %d\n", suit[communityCard[i]->cardSuit], communityCard[i]->cardRank);
+                }
+                sck(currBetMember->name);   //ƒxƒbƒg‚·‚éƒvƒŒƒCƒ„[‚ÌŠm”F
+
+                //ƒR[ƒ‹‚·‚éŠz‚ÌŒˆ’è
+                for (int i = 0; i < numMembers; i++) {
+                    callChip = (members[i].ownPot > callChip ? members[i].ownPot : callChip);
+                }
+                ick(callChip);
+                //ƒxƒbƒh‚³‚ê‚Ä‚¢‚È‚¢‚Ì“®ì
+                if (callChip == 0) {
+                    printf("1:%s, 2:%s", action[0], action[1]);
+                    scanf("%d", &choiceAct);
+                    choiceAct -= 1;
+                }
+                else {  //ƒxƒbƒh‚³‚ê‚Ä‚¢‚é‚Æ‚«‚Ì“®ì
+                    printf("1:%s, 2:%s, 3:%s", action[2], action[3], action[4]);
+                    scanf("%d", &choiceAct);
+                    choiceAct += 1;
+                }
+                sck(action[choiceAct]);
+                stop();
+                switch (choiceAct)
+                {
+                case bet:
+                    stake = 2 * blind;
+                    break;
+                    
+                case check:
+                    //‚·‚é‚±‚Æ‚È‚µ
+                    break;
+
+                case call:
+                    stake = callChip - currBetMember->ownPot;
+                    break;
+
+                case raise:
+                    //—vƒ‹[ƒ‹—‰ğ
+                    break;
+
+                case fold:
+                    //ì‚ç‚Ë‚Î
+                    break;
+                default:
+
+                    break;
+                }
+                ick(stake);
+                stop();
+                //Pay(currBetMember, 0);
+                currBetMember->ownPot += MoveChip(&(currBetMember->chip), stake);
+                NextMember(&currBetMember, 1, members, &members[numMembers]);
+            } while (IsBettinground(members, numMembers));
             
-            
-            ick(round);
             stop();
-            ick(round);
+
+            for (int i = 0; i < numMembers; i++) {
+                //pot += members[i].ownPot;
+                pot += MoveChip(&(members[i].ownPot), members[i].ownPot);
+            }
+            callChip = 0;
+            stake = 0;
+
             if (round == 4) {
                 //ƒVƒ‡[ƒ_ƒEƒ“
                 for (int i = 0; i < numMembers; i++) {
                     RoleJudge(&members[i], communityCard);
                 }
+                //ŸÒ”»’è
+                winner = members;
+                winner->chip += MoveChip(&pot, pot);
+                //winner->chip += pot;
+                //pot = 0;
             }
             else {
                 //ƒRƒ~ƒ…ƒjƒeƒBƒJ[ƒh‚Ì”z•z
@@ -206,12 +304,13 @@ void poker(void) { //ƒ|[ƒJ[
             communityCard[numCommCards - 1] = NULL;
         }
 
-        //ƒuƒ‰ƒCƒ“ƒh‚ğ•ÏX
-        NextMember(&smallBlind, 1, members);
-        NextMember(&bigBlind, 1, members);
+        NextMember(&smallBlind, 1, members, &members[numMembers]);
+        NextMember(&bigBlind, 1, members, &members[numMembers]);
 
         stop();
     }
+
+    
     
     int choice = 0;
     scanf("%d", &choice);
@@ -242,13 +341,32 @@ TrumpInfo* ChoiceTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
     return &trump[randomRank][randomSuit];              //‘I‚Î‚ê‚½ƒgƒ‰ƒ“ƒv‚ÌƒAƒhƒŒƒX‚ğ•Ô‚·
 }
 
+void Pay(MemberInfo* member, int chip) {
+    if (chip > member->chip) {
+        chip = member->chip;
+    }
+    //chip = member->chip >= chip ? chip : member->chip;
+    member->ownPot += chip;
+    member->chip -= chip;
+}
+
+int MoveChip(int* source, /*int* dest,*/ int amount) {
+    if (amount > *source) {
+        amount = *source;
+    }
+    //*dest += amount;
+    *source -= amount;
+    return amount;
+}
+
+
 bool IsBettinground(MemberInfo* members, int count) {
     for (int i = 0; i < count-1; i++) {
         if (members[i].ownPot != members[i + 1].ownPot) {
-            return false;
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
 void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
@@ -256,10 +374,4 @@ void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
     //ick(member->deck[0]->cardRank);
     //ick(member->deck[0]->cardSuit);
     //printf("\n");
-}
-
-
-void CpuMove(void) {
-
-
 }
