@@ -38,9 +38,9 @@ int main(void) {
     winner = poker(members, numMembers); //pokerを開始
     time_t pokerEndUnixTime = time(NULL);   //ゲーム終了時の時刻を記憶
     time_t pokerPlayUnixTime = pokerEndUnixTime - pokerStartUnixTime; //プレイ時間
+
     //データのエクスポート
     FILE* fp = fopen("result.txt", "a");
-
     struct tm* pokerStartTime = localtime(&pokerStartUnixTime);
     for (int j = 0; j < 2; j++) {
         fprintf(fp, "%d/%d/%d\n", pokerStartTime->tm_year + 1900, pokerStartTime->tm_mon + 1, pokerStartTime->tm_mday);
@@ -64,8 +64,8 @@ int main(void) {
 
 int MakeMember(MemberInfo** memberPtr) {
     int comCount = 0;           //COMの人数
-    int playerCount = 0;        //プレイヤーの人数(1人固定)
-    int memberCount = 0;
+    int playerCount = 0;        //プレイヤーの人数
+    int memberCount = 0;        //メンバーの人数
     int initChip = 0;           //チップの初期枚数
     printf("プレイヤーとCOMの設定をします\n");
     printf("プレイヤーの人数を入力：");
@@ -113,14 +113,7 @@ int MakeMember(MemberInfo** memberPtr) {
 
 
 MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
-    for (int i = 0; i < numMembers; i++) {
-        sck(members[i].name);
-        pck(members[i].nextMember);
-        pck(&members[i].name);
-    }
-    TableInfo table = { 0 };
     //MemberInfo* members = NULL;       //メンバーを格納する構造体配列
-    //int numMembers = 0;
     MemberInfo* smallBlind = NULL;  //スモールブラインド
     MemberInfo* bigBlind = NULL;    //ビッグブラインド
     MemberInfo* currBetMember = NULL;//現在現在べっとしているメンバー
@@ -131,20 +124,20 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
     int numAlive = 0;   //生存者の人数
     int round = 0;                                              //ラウンド
     int game = 0;                                               //ゲーム
-    int numCommunityCards = 0;
-    int ante = 50;
-    int blind = ante*2;
-    int callChip = 0;
-    int pot = 0;
-    BET choiceAct = 0;
-    const char* action[] = { "bet", "check", "call", "raise", "fold" };
-    int (*DecideAction)(const char*, ...) = NULL;
-    bool isFoolProof = false;
+    int numCommunityCards = 0;  //コミュニティーカードの枚数
+    int ante = 50;  //アンティ
+    int blind = ante*2; //ブラインド
+    int necessaryCallChip = 0;  //コールするチップの量
+    int pot = 0;    //ポット
+    BET choiceAct = 0;  //選択したアクション
+    const char* action[] = { "bet", "check", "call", "raise", "fold" }; //アクションの種類
+    int (*DecideAction)(const char*, ...) = NULL;   //COMとプレイヤーで異なる処理をする
+    bool isFoolProof = true;    //入力ミスをやり直し可能にする．
 
     //トランプカードの作成
     MakeTrump(trump);
 
-    numAlive = numMembers;
+    numAlive = numMembers;  //生存者数の設定
     printf("メンバー表\n");
     for (int i = 0; i < numMembers; i++) {
         printf("%d : %s\n", members[i].id, members[i].name);
@@ -153,14 +146,11 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
     smallBlind = &members[(game) % numMembers];
     bigBlind = &members[(game + 1) % numMembers];
     currBetMember = &members[(game + 2) % numMembers];
-    DecideAction = (currBetMember->isCOM) ? cpuMove : scanf;
-
-    printf("ベットするメンバー：%s", currBetMember->name);
+    DecideAction = (currBetMember->isCOM) ? cpuMove : scanf;    //COMならcpuMove関数, 人ならscanf関数を使うように設定する
 
    
-    //mainloop
+    //1ゲームごとのループ
     for(game = 1; numAlive >= 2; game++) {
-        ick(game);
         //アンティ（実装するかは未確定）
         printf("アンティ：%d\n", ante);        
         for (int i = 0; i < numAlive; i++) {
@@ -171,11 +161,9 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
 
         //スモールブラインド
         MoveChip(&(smallBlind->chip), &(smallBlind->stake), blind);
-        ick(smallBlind->stake);
 
         //ビッグブラインド
         MoveChip(&(bigBlind->chip), &(bigBlind->stake), 2 * blind);
-        ick(bigBlind->stake);
 
         //手札の配布・確認
         for (int i = 0; i < numAlive; i++) {
@@ -184,86 +172,53 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                 tmp->deck[j] = ChoiceTrump(trump);
             }
         }
-        printf("\x1b[s");
-        printf("%sの手札は\n", currBetMember->name);
-        printf("%s - %d\n", suit[members[0].deck[0]->cardSuit], members[0].deck[0]->cardRank);
-        printf("%s - %d\n", suit[members[0].deck[1]->cardSuit], members[0].deck[1]->cardRank);
 
         stop();
         //ラウンド開始
         for (round = 1; round <= 4; round++) {
-            ick(round);
             //ベッティングラウンド
             int choiceCount = 0;
             do{
+                printf("ベットするメンバー：%s\n", currBetMember->name);
+                printf("%sの手札は\n", currBetMember->name);
+                printf("%s - %d\n", suit[members[0].deck[0]->cardSuit], members[0].deck[0]->cardRank);
+                printf("%s - %d\n", suit[members[0].deck[1]->cardSuit], members[0].deck[1]->cardRank);
                 //コミュニティカードの確認
+                printf("コミュニティカードは\n");
                 for (int i = 0; i < numCommunityCards; i++) {
                     printf("%s - %d\n", suit[communityCard[i]->cardSuit], communityCard[i]->cardRank);
                 }
 
-                sck(currBetMember->name);   //ベットするプレイヤーの確認
 
                 //コールする額の決定
                 for (int i = 0; i < numMembers; i++) {
-                    callChip = (members[i].stake > callChip ? members[i].stake : callChip);
+                    necessaryCallChip = (members[i].stake > necessaryCallChip ? members[i].stake : necessaryCallChip);
                 }
 
-                ick(callChip);
-                ick(pot);
+                //各プレイヤーのチップの量と賭け金
                 for (int i = 0; i < numAlive; i++) {
                     MemberInfo* tmp = NextMember(members, i);
-                    printf("name is %s | ownPot : %d | chip : %d\n", tmp->name, tmp->stake, tmp->chip);
+                    printf("name is %s | stake : %d | chip : %d\n", tmp->name, tmp->stake, tmp->chip);
 
                 }
 
                 //アクションの選択
-                ick(currBetMember->isCOM);
-                do {
-                    if (callChip == 0) {
+                isFoolProof = true;
+                while (isFoolProof) {
+                    if (necessaryCallChip == 0) {   //コールする額が0 => 誰もべっとしていない
                         printf("1:%s, 2:%s：", action[0], action[1]);
-                        DecideAction("%u", &choiceAct);
-                        isFoolProof = choiceAct > 2;
-                        if (isFoolProof) {
-                            printf("\x1b[A\x1b[K");
-                        }
-                        else {
-                            choiceAct -= 1;
-                        }
-                    }
-                    else {
+                    }else {
                         printf("1:%s, 2:%s, 3:%s：", action[2], action[3], action[4]);
-                        DecideAction("%u", &choiceAct);
-                        isFoolProof = choiceAct > 3;
-                        if (isFoolProof) {
-                            printf("\x1b[A\x1b[K");
-                        }
-                        else {
-                            choiceAct += 1;
-                        }
                     }
-                }while (isFoolProof);
 
-                //if (callChip == 0) {                    //ベッドされていない時の動作
-                //    do {
-                //        printf("1:%s, 2:%s", action[0], action[1]);
-                //        DecideAction("%u", &choiceAct);
-                //        isFoolProof = choiceAct > 2;
-                //        if (isFoolProof) {
+                    DecideAction("%u", &choiceAct);
+                    isFoolProof = choiceAct > (3 - !necessaryCallChip); 
 
-                //        }
-                //        else {
-                //            choiceAct += 1;
-                //        }
-                //    } while (isFoolProof);
-                //}
-                //else {  //ベッドされているときの動作
-                //    printf("1:%s, 2:%s, 3:%s", action[2], action[3], action[4]);
-                //    DecideAction("%u", &choiceAct);
-                //    choiceAct += 1;
-                //}
+                    printf("%s", isFoolProof ? "\x1b[A\x1b[K" : "");    //入力ミスを削除
+                    choiceAct += necessaryCallChip ? 1 : -1;    ////入力した数字を補
+                }
                 choiceCount++;
-                sck(action[choiceAct]);
-                
+                stop();
                 
                 switch (choiceAct)
                 {
@@ -273,27 +228,26 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                         DecideAction("%d", &currBetMember->stake, currBetMember->chip);
                     } while (currBetMember->stake < 2 * blind);
                     printf("beted\n");
-                    //currBetMember->stake = 2 * blind;
                     break;
                     
                 case check:
                     currBetMember->stake = 0;
                     printf("checked\n");
-                    //することなし
                     break;
 
                 case call:
-                    currBetMember->stake = callChip - currBetMember->stake;
+                    ;int callChip = necessaryCallChip - currBetMember->stake;
+                    MoveChip(&currBetMember->chip, &currBetMember->stake, callChip);
                     break;
 
-                case raise:
-                    //要ルール理解
-                    
+                case raise:                    
                     ;int raiseChip = 0;
                     do {
                         printf("raise\n");
                         DecideAction("%d", &raiseChip, currBetMember->chip);
-                    } while (currBetMember->stake + raiseChip < callChip);
+                    } while (currBetMember->stake + raiseChip < necessaryCallChip);
+                    MoveChip(&currBetMember->chip, &currBetMember->stake, raiseChip);
+
                     printf("raised\n");
                     break;
 
@@ -306,9 +260,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
 
                     break;
                 }
-                ick(currBetMember->stake);
-                //賭ケグルイ
-                //MoveChip(&(currBetMember->chip), &currBetMember->stake, stake);
+                stop();
 
                 //メンバーの交代
                 //system("cls");
@@ -321,9 +273,10 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
             for (int i = 0; i < numMembers; i++) {
                 MoveChip(&(members[i].stake), &pot, members[i].stake);
             }
-            callChip = 0;
+            necessaryCallChip = 0;
 
-            if (round == 4) {
+            
+            if (round == 4) {   //ラウンド４
                 //ショーダウン
                 for (int i = 0; i < numAlive; i++) {
                    // MemberInfo* tmp = NextMember(members, i);
@@ -335,7 +288,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                 //winner->chip += pot;
                 //pot = 0;
             }
-            else {
+            else {      //ラウンド１～３
                 //コミュニティカードの配布
                 do {
                     communityCard[numCommunityCards] = ChoiceTrump(trump);
@@ -380,18 +333,20 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
 }
 
 int cpuMove(const char* command, ...) {
-    stop();
     va_list ap;
     va_start(ap, command);
     if (command[1] == 'u') {
-        *va_arg(ap, BET*) = (rand() % 4) + 1;
+        BET* action = va_arg(ap, BET*);
+        *action = (rand() % 4) + 1;
+        printf("%d\n", *action);
+        //*va_arg(ap, BET*) = (rand() % 4) + 1;
     }
     else if (command[1] == 'd') {
         int* stake = va_arg(ap, int*);
-        pck(stake);
         int max = va_arg(ap, int);
-        ick(max);
         *stake = (rand() % max);
+        printf("%d\n", *stake);
+        //*va_arg(ap, int*) = (rand() % va_arg(ap, int));
     }
     va_end(ap);
     return 0;
@@ -403,7 +358,6 @@ bool IsBettinground(MemberInfo* members, int numAlive, int betCount) {
 
     for (int i = 0;i < numAlive; i++) {
         MemberInfo* tmp = NextMember(members, i);
-        pck(tmp);
 
         if (tmp->stake != tmp->nextMember->stake) { return true; }
     }
