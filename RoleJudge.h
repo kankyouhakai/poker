@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <stdbool.h>
 #include <stdio.h>
 #include "gameset.h"
@@ -15,7 +15,7 @@ bool IsFourCard(TrumpInfo* cards[7]);
 bool IsStraightFlash(TrumpInfo* cards[7]);
 
 bool IsStraight(TrumpInfo* cards[7]) {
-    //ƒJ[ƒh‚Íƒ\[ƒgÏ‚İ
+    //ã‚«ãƒ¼ãƒ‰ã¯ã‚½ãƒ¼ãƒˆæ¸ˆã¿
     int continuity = 0;
     for (int i = 0; cards[i + 1] != NULL && i < 6; i++) {
         if (cards[i]->cardRank == cards[i + 1]->cardRank + 1) {

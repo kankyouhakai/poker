@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #define ESC 0x1b
 #define CSI 0x5b
 #define VN "38;2;156;220;254m"

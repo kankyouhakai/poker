@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 #include <stdbool.h>
 
-#define RANK_COUNT 13   //ƒgƒ‰ƒ“ƒv‚Ì”š
-#define SUIT_COUNT 4    //ƒgƒ‰ƒ“ƒv‚ÌŠGD‚Ì”
+#define RANK_COUNT 13   //ãƒˆãƒ©ãƒ³ãƒ—ã®æ•°å­—
+#define SUIT_COUNT 4    //ãƒˆãƒ©ãƒ³ãƒ—ã®çµµæœ­ã®æ•°
 
 typedef enum {
     clab,      //0
@@ -19,10 +19,10 @@ typedef enum {
     fold
 }BET;
 
-typedef struct {        //ƒgƒ‰ƒ“ƒv‚Ì\‘¢‘Ì
-    int cardRank;       //”š
-    SUIT cardSuit;      //ŠGD
-    bool isDeploy;      //”z’u‚³‚ê‚Ä‚¢‚é‚©
+typedef struct {        //ãƒˆãƒ©ãƒ³ãƒ—ã®æ§‹é€ ä½“
+    int cardRank;       //æ•°å­—
+    SUIT cardSuit;      //çµµæœ­
+    bool isDeploy;      //é…ç½®ã•ã‚Œã¦ã„ã‚‹ã‹
 
 }TrumpInfo;
 
@@ -39,18 +39,18 @@ typedef enum {
 }ROLE;
 
 
-typedef struct MemberInfo {        //ƒƒ“ƒo[‚Ì\‘¢‘Ì
-    char name[32];      //–¼‘O
-    int point;          //ƒ|ƒCƒ“ƒg
-    int chip;           //ƒ`ƒbƒv
+typedef struct MemberInfo {        //ãƒ¡ãƒ³ãƒãƒ¼ã®æ§‹é€ ä½“
+    char name[32];      //åå‰
+    int point;          //ãƒã‚¤ãƒ³ãƒˆ
+    int chip;           //ãƒãƒƒãƒ—
     int id;
     bool isCOM;
-    TrumpInfo* deck[2]; //èD
+    TrumpInfo* deck[2]; //æ‰‹æœ­
     int stake;
     bool isDied;
     ROLE ownRole;
     //int numOfDeck; 
-    //type role; //–ğ
+    //type role; //å½¹
     struct MemberInfo* nextMember;
 }MemberInfo;
 
@@ -83,20 +83,20 @@ void MoveChip(int* source, int* dest, int amount) {
 TrumpInfo* ChoiceTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
     int randomRank = 0;
     SUIT randomSuit = 0;
-    do {                                            //ƒ‰ƒ“ƒ_ƒ€‚Éƒgƒ‰ƒ“ƒv‚ğ‘I‚Ô
+    do {                                            //ãƒ©ãƒ³ãƒ€ãƒ ã«ãƒˆãƒ©ãƒ³ãƒ—ã‚’é¸ã¶
         randomRank = rand() % RANK_COUNT;
         randomSuit = rand() % SUIT_COUNT;
-    } while (trump[randomRank][randomSuit].isDeploy);   //‚Ü‚¾‘I‚Î‚ê‚Ä‚¢‚È‚¢ƒgƒ‰ƒ“ƒv‚ªo‚é‚Ü‚Åƒ‹[ƒv
+    } while (trump[randomRank][randomSuit].isDeploy);   //ã¾ã é¸ã°ã‚Œã¦ã„ãªã„ãƒˆãƒ©ãƒ³ãƒ—ãŒå‡ºã‚‹ã¾ã§ãƒ«ãƒ¼ãƒ—
     trump[randomRank][randomSuit].isDeploy = true;
 
-    return &trump[randomRank][randomSuit];              //‘I‚Î‚ê‚½ƒgƒ‰ƒ“ƒv‚ÌƒAƒhƒŒƒX‚ğ•Ô‚·
+    return &trump[randomRank][randomSuit];              //é¸ã°ã‚ŒãŸãƒˆãƒ©ãƒ³ãƒ—ã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’è¿”ã™
 }
 
 void MakeTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
     for (int i = 0; i < RANK_COUNT; i++) {
         for (int j = 0; j < SUIT_COUNT; j++) {
-            trump[i][j].cardRank = (i + 1) % RANK_COUNT + 1;             //ƒgƒ‰ƒ“ƒv‚Ì”š‚ğİ’è
-            trump[i][j].cardSuit = (SUIT)j;         //ƒgƒ‰ƒ“ƒv‚ÌŠGD‚ğİ’è
+            trump[i][j].cardRank = (i + 1) % RANK_COUNT + 1;             //ãƒˆãƒ©ãƒ³ãƒ—ã®æ•°å­—ã‚’è¨­å®š
+            trump[i][j].cardSuit = (SUIT)j;         //ãƒˆãƒ©ãƒ³ãƒ—ã®çµµæœ­ã‚’è¨­å®š
             trump[i][j].isDeploy = false;
         }
     }
