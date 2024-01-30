@@ -7,7 +7,7 @@
 #include <string.h>
 #include "debuglib.h"
 #include "gameset.h"
-#include "cpumove.h"
+#include "RoleJudge.h"
  
 
 int MakeMember(MemberInfo**); //メンバー作成
@@ -25,7 +25,6 @@ int cpuMove(const char*, ...);
 bool IsBettinground(MemberInfo* members, int count, int betCount);//ベッティングラウンドが継続するかどうか
 
 int ToQsort(const void*, const void*, int);
-
 int main(void) {
     srand((unsigned int)time(NULL));//乱数の初期化
     MemberInfo* members = NULL; //メンバーを格納する配列
@@ -120,7 +119,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
     MemberInfo* bigBlind = NULL;    //ビッグブラインド
     MemberInfo* currBetMember = NULL;//現在現在べっとしているメンバー
     MemberInfo* winner = NULL;  //勝った人
-    const char* suit[] = { "spade", "\x1b[31mheart\x1b[0m", "\x1b[31mdia\x1b[0m", "clab" }; //絵札の種類
+    const char* suit[] = {  "clab",  "\x1b[31mdia\x1b[0m","\x1b[31mheart\x1b[0m", "spade"}; //絵札の種類
     TrumpInfo trump[RANK_COUNT][SUIT_COUNT] = { 0 };            //トランプカードを格納する構造体配列
     TrumpInfo* communityCard[5] = { NULL };      //コミュニティカードを格納する構造体配列
     int numAlive = 0;   //生存者の人数
@@ -138,7 +137,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
 
     //トランプカードの作成
     MakeTrump(trump);
-
+    
     numAlive = numMembers;  //生存者数の設定
     printf("メンバー表\n");
     for (int i = 0; i < numMembers; i++) {
@@ -151,7 +150,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
     DecideAction = (currBetMember->isCOM) ? cpuMove : scanf;    //COMならcpuMove関数, 人ならscanf関数を使うように設定する
 
    
-    //1ゲームごとのループ
+    //1ゲームごとのループ 
     for(game = 1; numAlive >= 2; game++) {
         //アンティ（実装するかは未確定）
         printf("アンティ：%d\n", ante);        
@@ -387,66 +386,51 @@ void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
         combineCards[i] = communityCard[i - 2];
     }
     combineCards[0]->cardRank;
-    int cardsdata[RANK_COUNT + SUIT_COUNT] = { 0 };
-    int roleData = 0;
-    //1の位：2つ目のカードの大きさ
-    //10の位：1つ目のカードの大きさ
-    //100の位：役
 
     qsort(combineCards, 7, sizeof(TrumpInfo*), ToQsort); //カードを強い順にソートする．
 
-    //データを集計
-    //関数の役割
-    //  実引数としてメンバー，コミュニティカードをとり，そのメンバーの役を判定する．
-    // 
-    //引数の説明
-    //member : 役を判定する対象のメンバー．
-    //  member->name  : メンバーの名前
-    //  menber->point : たぶん使わん
-    //  member->chip  : 現在所持しているチップ
-    //  member->id    : メンバー固有のID
-    //  member->isCOM : 人間かCPUか
-    //  member->deck[]: メンバーの手札．詳細は後述する．
-    //  member->ownPot: メンバーが現在かけているチップ.
-    //  member->isDied: メンバーが生きてるか死んでるか．
-    //  member->numOfDeck:メンバーの手札の枚数.
-    //  member->role   : 判定された役．変数の型は自由に決めてね
-    //  member->nextMember: 次のメンバーへのポインタ．
-    // 
-    // member->deck[]の説明
-    //  ・配列数は２（手札は2枚だから）
-    //  member->deck[i]->cardRank : i枚目の手札の数字
-    //  member->deck[i]->cardSuit : i枚目の手札の絵札.(spade = 0, heart = 1, dia = 2,clab = 3)
-    // 
-    // communitycard[] : コミュニティーカードを格納する配列．最大5枚なので配列長は５
-    //  communitycard[i]->cardRank
-    //  communitycard[i]->cardSuit : メンバーの手札と同様
-    // 
-    // 
-    // その他
-    //  ・おそらく使う変数は
-    //      member->deck[]
-    //      member->role
-    //      communitycard[]
-    // 　 かもしれない．
-    // ・その他必要だと思った変数や関数や引数は適宜追加してもらって
-    // ・ほかに知りたいことがあったら北尾君に聞けば何か得られるかもしれん．
-    //
+    bool (*isRole[])(TrumpInfo*) = { IsOnePair, isTwoPair, IsThreeCard, IsFlash, IsStraight, isFullHouse, IsFourCard, IsStraightFlash };
+
+    for (int i = 0; i < 8; i++) {
+        member->ownRole = isRole[i](combineCards) ? (ROLE)(i + 1) : (ROLE)0;
+    }
+    member->ownRole = member->ownRole << 4;
+
 }
 
-int ToQsort(const void** n1, const void** n2) {
-    TrumpInfo* card1 = (TrumpInfo*)*n1;
-    TrumpInfo* card2 = (TrumpInfo*)*n2;
-    //(*n1)->cardRank;
+int ToQsort(const void* n1, const void* n2) {   //アドレスが大きいほうが強い
+    TrumpInfo* card1 = *(TrumpInfo**)n1;
+    TrumpInfo* card2 = *(TrumpInfo**)n2;
     if (card1 == NULL) { return 1; }
     if (card2 == NULL) { return -1; }
-    if (card1->cardRank > card2->cardRank) { return -1; }
-    if (card1->cardRank < card2->cardRank) { return 1; }
 
-    // ランクが同じ場合はスートを比較
-    if (card1->cardSuit > card2->cardSuit) { return 1; }
-    if (card1->cardSuit < card2->cardSuit) { return -1; }
-
-    return 0;
+    if (card1 > card2) { return -1; }
+    if (card1 < card2) { return 1; }
 }
 
+void DecidePoint(MemberInfo* member, TrumpInfo* cards[7]) {
+    switch (member->ownRole)
+    {
+    case HIGH_CARD:
+
+        break;
+    case ONE_PAIR:
+        break;
+    case TWO_PAIR:
+        break;
+    case THREE_CARD:
+        break;
+    case FLASH:
+        break;
+    case STRAIGHT:
+        break;
+    case FULL_HOUSE:
+        break;
+    case FOUR_CARD:
+        break;
+    case STRAIGHT_FLASH:
+        break;
+    default:
+        break;
+    }
+}

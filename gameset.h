@@ -5,10 +5,10 @@
 #define SUIT_COUNT 4    //トランプの絵札の数
 
 typedef enum {
-    spade,      //0
-    heart,      //1
-    dia,        //2
-    clab        //3
+    clab,      //0
+    dia,      //1
+    heart,        //2
+    spade        //3
 }SUIT;
 
 typedef enum {
@@ -26,6 +26,19 @@ typedef struct {        //トランプの構造体
 
 }TrumpInfo;
 
+typedef enum {
+    HIGH_CARD,
+    ONE_PAIR,
+    TWO_PAIR,
+    THREE_CARD,
+    FLASH,
+    STRAIGHT,
+    FULL_HOUSE,
+    FOUR_CARD,
+    STRAIGHT_FLASH
+}ROLE;
+
+
 typedef struct MemberInfo {        //メンバーの構造体
     char name[32];      //名前
     int point;          //ポイント
@@ -35,6 +48,7 @@ typedef struct MemberInfo {        //メンバーの構造体
     TrumpInfo* deck[2]; //手札
     int stake;
     bool isDied;
+    ROLE ownRole;
     //int numOfDeck; 
     //type role; //役
     struct MemberInfo* nextMember;
@@ -81,7 +95,7 @@ TrumpInfo* ChoiceTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
 void MakeTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
     for (int i = 0; i < RANK_COUNT; i++) {
         for (int j = 0; j < SUIT_COUNT; j++) {
-            trump[i][j].cardRank = i + 1;             //トランプの数字を設定
+            trump[i][j].cardRank = (i + 2) % RANK_COUNT;             //トランプの数字を設定
             trump[i][j].cardSuit = (SUIT)j;         //トランプの絵札を設定
             trump[i][j].isDeploy = false;
         }
