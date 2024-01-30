@@ -72,8 +72,8 @@ int MakeMember(MemberInfo** memberPtr) {
     scanf("%d", &playerCount);
 
     printf("com‚Ìl”‚ğ“ü—ÍF\n");
-    scanf("%d", &comCount);
-
+    //scanf("%d", &comCount);
+    comCount = 0;
     memberCount = playerCount + comCount;
     *memberPtr = (MemberInfo*)calloc(sizeof(MemberInfo), memberCount);
 
@@ -395,8 +395,10 @@ void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
     bool (*isRole[])(TrumpInfo**) = { IsOnePair, isTwoPair, IsThreeCard, IsFlash, IsStraight, isFullHouse, IsFourCard, IsStraightFlash };
 
     for (int i = 0; i < 8; i++) {
-        member->ownRole = isRole[i](combineCards) ? (ROLE)(i + 1) : (ROLE)0;
+        member->ownRole += isRole[i](combineCards) ? (ROLE)(i + 1) : (ROLE)0;
+        ick(member->ownRole);
     }
+    stop();
     member->point = member->ownRole << 4;
     
 
