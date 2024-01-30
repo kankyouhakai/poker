@@ -95,7 +95,7 @@ TrumpInfo* ChoiceTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
 void MakeTrump(TrumpInfo trump[RANK_COUNT][SUIT_COUNT]) {
     for (int i = 0; i < RANK_COUNT; i++) {
         for (int j = 0; j < SUIT_COUNT; j++) {
-            trump[i][j].cardRank = (i + 2) % RANK_COUNT;             //トランプの数字を設定
+            trump[i][j].cardRank = (i + 1) % RANK_COUNT + 1;             //トランプの数字を設定
             trump[i][j].cardSuit = (SUIT)j;         //トランプの絵札を設定
             trump[i][j].isDeploy = false;
         }

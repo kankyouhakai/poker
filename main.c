@@ -24,7 +24,7 @@ int cpuMove(const char*, ...);
 
 bool IsBettinground(MemberInfo* members, int count, int betCount);//ベッティングラウンドが継続するかどうか
 
-int ToQsort(const void*, const void*, int);
+int ToQsort(const void*, const void*);
 int main(void) {
     srand((unsigned int)time(NULL));//乱数の初期化
     MemberInfo* members = NULL; //メンバーを格納する配列
@@ -72,8 +72,7 @@ int MakeMember(MemberInfo** memberPtr) {
     scanf("%d", &playerCount);
 
     printf("comの人数を入力：\n");
-    //scanf("%d", &comCount);
-    comCount = 0;
+    scanf("%d", &comCount);
 
     memberCount = playerCount + comCount;
     *memberPtr = (MemberInfo*)calloc(sizeof(MemberInfo), memberCount);
@@ -132,6 +131,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
     int pot = 0;    //ポット
     BET choiceAct = 0;  //選択したアクション
     const char* action[] = { "bet", "check", "call", "raise", "fold" }; //アクションの種類
+    const char* role[] = { "highcard", "onepair", "twopair", "threepair", "flash", "straight", "fullhouse", "straightflash" };
     int (*DecideAction)(const char*, ...) = NULL;   //COMとプレイヤーで異なる処理をする
     bool isFoolProof = true;    //入力ミスをやり直し可能にする．
 
@@ -190,14 +190,15 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                 printf("コールする額は%d\n", necessaryCallChip);
                 printf("ベットするメンバー：%s\n", currBetMember->name);
                 printf("%sの手札は\n", currBetMember->name);
-                printf("%s - %d\n", suit[members[0].deck[0]->cardSuit], members[0].deck[0]->cardRank);
-                printf("%s - %d\n", suit[members[0].deck[1]->cardSuit], members[0].deck[1]->cardRank);
+                printf("%s - %d\n", suit[currBetMember->deck[0]->cardSuit], currBetMember->deck[0]->cardRank);
+                printf("%s - %d\n", suit[currBetMember->deck[1]->cardSuit], currBetMember->deck[1]->cardRank);
                 //コミュニティカードの確認
                 printf("コミュニティカードは\n");
                 for (int i = 0; i < numCommunityCards; i++) {
                     printf("%s - %d\n", suit[communityCard[i]->cardSuit], communityCard[i]->cardRank);
                 }
-
+                //役の確認
+                printf("%sの役は：%s\n", currBetMember->name, role[currBetMember->ownRole]);
 
                 //各プレイヤーのチップの量と賭け金
                 for (int i = 0; i < numAlive; i++) {
@@ -302,7 +303,9 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                     communityCard[numCommunityCards] = ChoiceTrump(trump);
                     numCommunityCards++;
                 } while (communityCard[2] == NULL);
-                RoleJudge(&members[0], communityCard);
+                for (int i = 0; i < numAlive; i++) {
+                    RoleJudge(NextMember(members, i), communityCard);
+                }
             }
         }
         //ラウンド終了
@@ -389,12 +392,13 @@ void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
 
     qsort(combineCards, 7, sizeof(TrumpInfo*), ToQsort); //カードを強い順にソートする．
 
-    bool (*isRole[])(TrumpInfo*) = { IsOnePair, isTwoPair, IsThreeCard, IsFlash, IsStraight, isFullHouse, IsFourCard, IsStraightFlash };
+    bool (*isRole[])(TrumpInfo**) = { IsOnePair, isTwoPair, IsThreeCard, IsFlash, IsStraight, isFullHouse, IsFourCard, IsStraightFlash };
 
     for (int i = 0; i < 8; i++) {
         member->ownRole = isRole[i](combineCards) ? (ROLE)(i + 1) : (ROLE)0;
     }
-    member->ownRole = member->ownRole << 4;
+    member->point = member->ownRole << 4;
+    
 
 }
 
@@ -412,7 +416,6 @@ void DecidePoint(MemberInfo* member, TrumpInfo* cards[7]) {
     switch (member->ownRole)
     {
     case HIGH_CARD:
-
         break;
     case ONE_PAIR:
         break;

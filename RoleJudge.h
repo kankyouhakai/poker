@@ -45,7 +45,6 @@ bool IsFlash(TrumpInfo* cards[7]) {
 }
 
 bool IsStraightFlash(TrumpInfo* cards[7]) {
-    ck();
     return IsStraight(cards) && IsFlash(cards);
 }
 
