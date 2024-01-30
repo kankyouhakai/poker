@@ -5,14 +5,6 @@
 
 
 
-bool IsOnePair(TrumpInfo* cards[7]);
-bool isTwoPair(TrumpInfo* cards[7]);
-bool IsThreeCard(TrumpInfo* cards[7]);
-bool IsStraight(TrumpInfo* cards[7]);
-bool IsFlash(TrumpInfo* cards[7]);
-bool isFullHouse(TrumpInfo* cards[7]);
-bool IsFourCard(TrumpInfo* cards[7]);
-bool IsStraightFlash(TrumpInfo* cards[7]);
 
 bool IsStraight(TrumpInfo* cards[7]) {
     //カードはソート済み

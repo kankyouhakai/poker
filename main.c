@@ -26,6 +26,7 @@ bool IsBettinground(MemberInfo* members, int count, int betCount);//ベッティ
 
 int ToQsort(const void*, const void*);
 int main(void) {
+    system("chcp 65001");
     srand((unsigned int)time(NULL));//乱数の初期化
     MemberInfo* members = NULL; //メンバーを格納する配列
     MemberInfo* winner = NULL;  //勝者を格納するための変数
@@ -328,9 +329,11 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
         for (int i = 0; i < numMembers; i++) {
             if (members[i].chip == 0) {
                 members[i].isDied = true;
+                members[i].ownRole = 0;
             }
             else {
                 members[i].isDied = false;
+                members[i].ownRole = 0;
                 numAlive++;
             }
         }
@@ -393,7 +396,7 @@ void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
     qsort(combineCards, 7, sizeof(TrumpInfo*), ToQsort); //カードを強い順にソートする．
 
     bool (*isRole[])(TrumpInfo**) = { IsOnePair, isTwoPair, IsThreeCard, IsFlash, IsStraight, isFullHouse, IsFourCard, IsStraightFlash };
-
+    member->ownRole = 0;
     for (int i = 0; i < 8; i++) {
         member->ownRole += isRole[i](combineCards) ? (ROLE)(i + 1) : (ROLE)0;
         ick(member->ownRole);
