@@ -132,7 +132,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
     int pot = 0;    //ポット
     BET choiceAct = 0;  //選択したアクション
     const char* action[] = { "bet", "check", "call", "raise", "fold" }; //アクションの種類
-    const char* role[] = { "highcard", "onepair", "twopair", "threecard", "flash", "straight", "fullhouse", "straightflash" };
+    const char* role[] = { "highcard", "onepair", "twopair", "threecard", "flash", "straight", "fullhouse","fourcard", "straightflash" };
     int (*DecideAction)(const char*, ...) = NULL;   //COMとプレイヤーで異なる処理をする
     bool isFoolProof = true;    //入力ミスをやり直し可能にする．
 
@@ -152,7 +152,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
 
    
     //1ゲームごとのループ 
-    for(game = 1; numAlive >= 2; game++) {
+    for(game = 1; numAlive >= 1/*2*/; game++) {
         //アンティ（実装するかは未確定）
         printf("アンティ：%d\n", ante);        
         for (int i = 0; i < numAlive; i++) {
@@ -403,7 +403,7 @@ void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
     bool (*isRole[])(TrumpInfo**, MemberInfo*) = { IsOnePair, isTwoPair, IsThreeCard, IsFlash, IsStraight, isFullHouse, IsFourCard, IsStraightFlash };
     member->ownRole = 0;
     for (int i = 0; i < 8; i++) {
-        member->ownRole += isRole[i](combineCards, member) ? (ROLE)(i + 1) : (ROLE)0;
+        member->ownRole = isRole[i](combineCards, member) ? (ROLE)(i + 1) : (ROLE)member->ownRole;
         ick(member->ownRole);
     }
     stop();
