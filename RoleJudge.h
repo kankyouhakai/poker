@@ -7,13 +7,11 @@ bool IsOnePair(TrumpInfo* cards[7], MemberInfo* member) {
     int continuity = 0;
     int  point = ONE_PAIR;
     for (int i = 0; cards[i + 1] != NULL && i < 6; i++) {
-        if (cards[i]->cardRank == cards[i + 1]->cardRank) {
+        if (cards[i]->cardRank == cards[i + 1]->cardRank && continuity==0) {
             continuity++;
             if (continuity == 1) {
                 point = (point << 4) + cards[i]->cardRank;
                 point = (point << 4) + cards[i]->cardSuit;
-                member->point = point;
-                return true;
             }
         }
     }
@@ -27,7 +25,7 @@ bool isTwoPair(TrumpInfo* cards[7], MemberInfo* member) {
     int continuity[2] = { 0 };
     int index = 0;
     int point = TWO_PAIR;
-    for (int i = 0; cards[i + 1] != NULL && i < 6 && index <= 2;i++) {
+    for (int i = 0; cards[i + 1] != NULL && i < 6 && index < 2;i++) {
         if (cards[i]->cardRank == cards[i + 1]->cardRank) {
             continuity[index]++;
             if (continuity[index] == 1) {

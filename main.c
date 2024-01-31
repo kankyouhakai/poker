@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <string.h>
-#include "debuglib.h"
+//#include "debuglib.h"
 #include "gameset.h"
 #include "RoleJudge.h"
  
@@ -26,7 +26,6 @@ bool IsBettinground(MemberInfo* members, int count, int betCount);//ベッティ
 
 int ToQsort(const void*, const void*);
 int main(void) {
-    system("chcp 65001");
     srand((unsigned int)time(NULL));//乱数の初期化
     MemberInfo* members = NULL; //メンバーを格納する配列
     MemberInfo* winner = NULL;  //勝者を格納するための変数
@@ -57,7 +56,6 @@ int main(void) {
             fp = stdout;
         }
     }
-    stop();
     free(members);
     //オプション
     return 0;
@@ -144,7 +142,6 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
     for (int i = 0; i < numMembers; i++) {
         printf("%d : %s\n", members[i].id, members[i].name);
     }
-    stop();
     smallBlind = &members[(game) % numMembers];
     bigBlind = &members[(game + 1) % numMembers];
     currBetMember = &members[(game + 2) % numMembers];
@@ -270,15 +267,13 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
 
                     break;
                 }
-                stop();
 
                 //メンバーの交代
-                system("cls");
+                system("clear");
                 currBetMember = NextMember(currBetMember, 1);
                 DecideAction = (currBetMember->isCOM) ? cpuMove : scanf;
             } while (IsBettinground(members, numAlive, choiceCount)); //ラウンドの終端
             
-            stop();
             //賭けたチップをポットに移す
             for (int i = 0; i < numMembers; i++) {
                 MoveChip(&(members[i].stake), &pot, members[i].stake);
@@ -343,7 +338,6 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
         smallBlind = NextMember(smallBlind, 1);
         bigBlind =  NextMember(bigBlind, 1);
 
-        stop();
     }
     return winner;
 }
@@ -354,9 +348,6 @@ int cpuMove(const char* command, ...) {
     if (command[1] == 'u') {
         BET* action = va_arg(ap, BET*);
         *action = (rand() % 4) + 1;
-        if (*action == 2) { *action = (rand() % 4) + 1;ick(*action); }
-        if (*action == 2) { *action = (rand() % 4) + 1;ick(*action); }
-        if (*action ==2) { *action = (rand() % 4) + 1;ick(*action); }
 
         printf("%d\n", *action);
         //*va_arg(ap, BET*) = (rand() % 4) + 1;
@@ -374,9 +365,6 @@ int cpuMove(const char* command, ...) {
 
 
 bool IsBettinground(MemberInfo* members, int numAlive, int betCount) {
-    ick(betCount);
-    ick(numAlive);
-    stop();
     if (betCount <=  numAlive) { return true; }
 
     for (int i = 0;i < numAlive; i++) {
@@ -404,9 +392,7 @@ void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
     member->ownRole = 0;
     for (int i = 0; i < 8; i++) {
         member->ownRole = isRole[i](combineCards, member) ? (ROLE)(i + 1) : (ROLE)member->ownRole;
-        ick(member->ownRole);
     }
-    stop();
     member->point = member->ownRole << 4;
     
 
