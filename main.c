@@ -288,7 +288,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                 char changemember = 0;
                 do {
                     printf("メンバーを%sに交代します[y/n]:", currBetMember->nextMember->name);
-                    scanf("%c", &changemember);
+                    scanf(" %c", &changemember);
                 } while (changemember != 'y');
                 system("clear");
                 currBetMember = NextMember(currBetMember, 1);
