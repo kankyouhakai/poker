@@ -187,9 +187,12 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                 printf("round : %d\n", round);
                 printf("コールする額は%d\n", necessaryCallChip);
                 printf("ベットするメンバー：%s\n", currBetMember->name);
-                printf("%sの手札は\n", currBetMember->name);
-                printf("%s - %d\n", suit[currBetMember->deck[0]->cardSuit], currBetMember->deck[0]->cardRank);
-                printf("%s - %d\n", suit[currBetMember->deck[1]->cardSuit], currBetMember->deck[1]->cardRank);
+
+                if (!currBetMember->isCOM) {
+                    printf("%sの手札は\n", currBetMember->name);
+                    printf("%s - %d\n", suit[currBetMember->deck[0]->cardSuit], currBetMember->deck[0]->cardRank);
+                    printf("%s - %d\n", suit[currBetMember->deck[1]->cardSuit], currBetMember->deck[1]->cardRank);
+                }
                 //コミュニティカードの確認
                 printf("コミュニティカードは\n");
                 for (int i = 0; i < numCommunityCards; i++) {
@@ -269,6 +272,12 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                 }
 
                 //メンバーの交代
+
+                char changemember = 0;
+                do {
+                    printf("メンバーを%sに交代します[y/n]:", currBetMember->nextMember->name);
+
+                } while (changemember == 'y');
                 system("clear");
                 currBetMember = NextMember(currBetMember, 1);
                 DecideAction = (currBetMember->isCOM) ? cpuMove : scanf;
