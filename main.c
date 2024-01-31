@@ -221,8 +221,14 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                     }else {
                         printf("1:%s, 2:%s, 3:%s：", action[2], action[3], action[4]);
                     }
+                    if(currBetMember->chip == 0){
+                       choiceAct = necessaryCallChip ? 1 : 2;
 
-                    DecideAction("%u", &choiceAct);
+                    }
+                    else {
+                        DecideAction("%u", &choiceAct);
+
+                    }
                     isFoolProof = choiceAct > (3 - !necessaryCallChip) ; 
 
                     printf("%s", isFoolProof ? "\x1b[A\x1b[K" : "");    //入力ミスを削除
