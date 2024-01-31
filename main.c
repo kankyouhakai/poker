@@ -73,15 +73,15 @@ int MakeMember(MemberInfo** memberPtr) {
     scanf("%d", &playerCount);
 
     printf("comの人数を入力：\n");
-    //scanf("%d", &comCount);
-    comCount = 0;
+    scanf("%d", &comCount);
+    
     memberCount = playerCount + comCount;
     *memberPtr = (MemberInfo*)calloc(sizeof(MemberInfo), memberCount);
 
 
-    printf("チップの初期枚数を入力：\n");
+    //printf("チップの初期枚数を入力：\n");
     //scanf("%d", &initChip);
-    initChip = 100000;
+    initChip = 10000;
     if (*memberPtr != NULL) { //メンバーが正しく作成されたか
         for (int i = 0; i < playerCount; i++) {
             printf("プレイヤー%dの名前を入力：", i + 1);
@@ -132,7 +132,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
     int pot = 0;    //ポット
     BET choiceAct = 0;  //選択したアクション
     const char* action[] = { "bet", "check", "call", "raise", "fold" }; //アクションの種類
-    const char* role[] = { "highcard", "onepair", "twopair", "threepair", "flash", "straight", "fullhouse", "straightflash" };
+    const char* role[] = { "highcard", "onepair", "twopair", "threecard", "flash", "straight", "fullhouse", "straightflash" };
     int (*DecideAction)(const char*, ...) = NULL;   //COMとプレイヤーで異なる処理をする
     bool isFoolProof = true;    //入力ミスをやり直し可能にする．
 
@@ -185,7 +185,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                     necessaryCallChip = (members[i].stake > necessaryCallChip ? members[i].stake : necessaryCallChip);
                 }
 
-
+                RoleJudge(currBetMember, communityCard);
                 //情報の表示
                 printf("round : %d\n", round);
                 printf("コールする額は%d\n", necessaryCallChip);
@@ -288,13 +288,16 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
             
             if (round == 4) {   //ラウンド４
                 //ショーダウン
-                for (int i = 0; i < numAlive; i++) {
-                   // MemberInfo* tmp = NextMember(members, i);
-                   RoleJudge(NextMember(members, i), communityCard);
-                }
-                //勝者判定
                 winner = members;
+                for (int i = 0; i < numAlive; i++) {
+                  MemberInfo* tmp = NextMember(members, i);
+                   RoleJudge(tmp, communityCard);
+                   winner = (winner->point < tmp->point) ? tmp : winner;
+
+                }
+                printf("勝者は%s\n", winner->name);
                 MoveChip(&pot, &winner->chip, pot);
+                //勝者判定
                 //winner->chip += pot;
                 //pot = 0;
             }
@@ -329,13 +332,12 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
         for (int i = 0; i < numMembers; i++) {
             if (members[i].chip == 0) {
                 members[i].isDied = true;
-                members[i].ownRole = 0;
             }
             else {
                 members[i].isDied = false;
-                members[i].ownRole = 0;
                 numAlive++;
             }
+            members[i].ownRole = 0;
         }
 
         smallBlind = NextMember(smallBlind, 1);
@@ -352,7 +354,10 @@ int cpuMove(const char* command, ...) {
     if (command[1] == 'u') {
         BET* action = va_arg(ap, BET*);
         *action = (rand() % 4) + 1;
-        if (*action == raise) { *action = (rand() % 4) + 1; }
+        if (*action == 2) { *action = (rand() % 4) + 1;ick(*action); }
+        if (*action == 2) { *action = (rand() % 4) + 1;ick(*action); }
+        if (*action ==2) { *action = (rand() % 4) + 1;ick(*action); }
+
         printf("%d\n", *action);
         //*va_arg(ap, BET*) = (rand() % 4) + 1;
     }
@@ -395,10 +400,10 @@ void RoleJudge(MemberInfo* member, TrumpInfo* communityCard[5]) {
 
     qsort(combineCards, 7, sizeof(TrumpInfo*), ToQsort); //カードを強い順にソートする．
 
-    bool (*isRole[])(TrumpInfo**) = { IsOnePair, isTwoPair, IsThreeCard, IsFlash, IsStraight, isFullHouse, IsFourCard, IsStraightFlash };
+    bool (*isRole[])(TrumpInfo**, MemberInfo*) = { IsOnePair, isTwoPair, IsThreeCard, IsFlash, IsStraight, isFullHouse, IsFourCard, IsStraightFlash };
     member->ownRole = 0;
     for (int i = 0; i < 8; i++) {
-        member->ownRole += isRole[i](combineCards) ? (ROLE)(i + 1) : (ROLE)0;
+        member->ownRole += isRole[i](combineCards, member) ? (ROLE)(i + 1) : (ROLE)0;
         ick(member->ownRole);
     }
     stop();
