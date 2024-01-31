@@ -262,7 +262,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                         DecideAction("%d", &raiseChip, currBetMember->chip);
                         isFoolProof = currBetMember->stake + raiseChip < necessaryCallChip;
 
-                        isOverflowLine = currBetMember->stake > currBetMember->chip;
+                        isOverflowLine = raiseChip > currBetMember->chip;
                         printf("%s", isFoolProof ? "\x1b[A\x1b[Kもう一度入力してください\n" : "");    //入力ミスを削除
                     } while (isFoolProof);
                     MoveChip(&currBetMember->chip, &currBetMember->stake, raiseChip);
