@@ -241,13 +241,17 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                 case bet:
                     do {
                         printf("ベットする額を入力：\n");
-                        DecideAction("%d", &currBetMember->stake, currBetMember->chip);
-                        isFoolProof = currBetMember->stake < 2 * blind;
+                        if (currBetMember->chip < necessaryCallChip) {
+                            currBetMember->stake = currBetMember->chip;
+                        }
+                        else {
+                            DecideAction("%d", &currBetMember->stake, currBetMember->chip);
+                            isFoolProof = currBetMember->stake < 2 * blind;
 
-                        isOverflowLine = currBetMember->stake > currBetMember->chip;
-                        printf("%s", (isFoolProof||isOverflowLine) ? "\x1b[A\x1b[Kもう一度入力してください\n" : "");    //入力ミスを削除
-
-                    } while (isFoolProof);
+                            isOverflowLine = currBetMember->stake > currBetMember->chip;
+                            printf("%s", (isFoolProof || isOverflowLine) ? "\x1b[A\x1b[Kもう一度入力してください\n" : "");    //入力ミスを削除
+                        }
+                    } while (isFoolProof || isOverflowLine);
                     printf("beted\n");
                     break;
                     
@@ -265,12 +269,17 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                     ;int raiseChip = 0;
                     do {
                         printf("レイズする額を入力：");
-                        DecideAction("%d", &raiseChip, currBetMember->chip);
-                        isFoolProof = currBetMember->stake + raiseChip < necessaryCallChip;
+                        if (currBetMember->chip < necessaryCallChip) {
+                            raiseChip = currBetMember->chip;
+                        }
+                        else {
+                            DecideAction("%d", &raiseChip, currBetMember->chip);
+                            isFoolProof = currBetMember->stake + raiseChip < necessaryCallChip;
 
-                        isOverflowLine = raiseChip > currBetMember->chip;
-                        printf("%s", isFoolProof ? "\x1b[A\x1b[Kもう一度入力してください\n" : "");    //入力ミスを削除
-                    } while (isFoolProof);
+                            isOverflowLine = raiseChip > currBetMember->chip;
+                            printf("%s", isFoolProof ? "\x1b[A\x1b[Kもう一度入力してください\n" : "");    //入力ミスを削除
+                        }
+                    } while (isFoolProof || isOverflowLine);
                     MoveChip(&currBetMember->chip, &currBetMember->stake, raiseChip);
 
                     printf("raised\n");
