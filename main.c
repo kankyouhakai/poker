@@ -135,6 +135,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
     int (*DecideAction)(const char*, ...) = NULL;   //COMとプレイヤーで異なる処理をする
     bool isFoolProof = true;    //入力ミスをやり直し可能にする．
     bool isAllFold = false;
+    bool isOverflowLine = false;
     //トランプカードの作成
     MakeTrump(trump);
     
@@ -222,7 +223,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                     }
 
                     DecideAction("%u", &choiceAct);
-                    isFoolProof = choiceAct > (3 - !necessaryCallChip); 
+                    isFoolProof = choiceAct > (3 - !necessaryCallChip) ; 
 
                     printf("%s", isFoolProof ? "\x1b[A\x1b[K" : "");    //入力ミスを削除
                     choiceAct += necessaryCallChip ? 1 : -1;    ////入力した数字を補
@@ -236,7 +237,9 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                         printf("ベットする額を入力：\n");
                         DecideAction("%d", &currBetMember->stake, currBetMember->chip);
                         isFoolProof = currBetMember->stake < 2 * blind;
-                        printf("%s", isFoolProof ? "\x1b[A\x1b[Kもう一度入力してください\n" : "");    //入力ミスを削除
+
+                        isOverflowLine = currBetMember->stake > currBetMember->chip;
+                        printf("%s", (isFoolProof||isOverflowLine) ? "\x1b[A\x1b[Kもう一度入力してください\n" : "");    //入力ミスを削除
 
                     } while (isFoolProof);
                     printf("beted\n");
@@ -258,6 +261,8 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                         printf("レイズする額を入力：");
                         DecideAction("%d", &raiseChip, currBetMember->chip);
                         isFoolProof = currBetMember->stake + raiseChip < necessaryCallChip;
+
+                        isOverflowLine = currBetMember->stake > currBetMember->chip;
                         printf("%s", isFoolProof ? "\x1b[A\x1b[Kもう一度入力してください\n" : "");    //入力ミスを削除
                     } while (isFoolProof);
                     MoveChip(&currBetMember->chip, &currBetMember->stake, raiseChip);
