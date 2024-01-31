@@ -26,6 +26,7 @@ bool IsBettinground(MemberInfo* members, int count, int betCount);//ベッティ
 
 int ToQsort(const void*, const void*);
 int main(void) {
+    system("chcp 65001");
     srand((unsigned int)time(NULL));//乱数の初期化
     MemberInfo* members = NULL; //メンバーを格納する配列
     MemberInfo* winner = NULL;  //勝者を格納するための変数
@@ -133,7 +134,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
     const char* role[] = { "highcard", "onepair", "twopair", "threecard", "flash", "straight", "fullhouse","fourcard", "straightflash" };
     int (*DecideAction)(const char*, ...) = NULL;   //COMとプレイヤーで異なる処理をする
     bool isFoolProof = true;    //入力ミスをやり直し可能にする．
-
+    bool isAllFold = false;
     //トランプカードの作成
     MakeTrump(trump);
     
@@ -153,11 +154,12 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
         //アンティ（実装するかは未確定）
         printf("アンティ：%d\n", ante);        
         for (int i = 0; i < numAlive; i++) {
-            //MemberInfo* tmp = NextMember(members, i);
+            printf("157\n");
+            //MemberInfo* tmp = NextMember(members, i);pr
             MoveChip(&(NextMember(members, i)->chip), &pot, ante);
         }
-        
-
+        printf("%d\n",__LINE__);
+        printf("161\n");
         //スモールブラインド
         MoveChip(&(smallBlind->chip), &(smallBlind->stake), blind);
 
@@ -199,15 +201,17 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                     printf("%s - %d\n", suit[communityCard[i]->cardSuit], communityCard[i]->cardRank);
                 }
                 //役の確認
-                printf("%sの役は：%s\n", currBetMember->name, role[currBetMember->ownRole]);
+                if (!currBetMember->isCOM) {
 
+                    printf("%sの役は：%s\n", currBetMember->name, role[currBetMember->ownRole]);
+                }
                 //各プレイヤーのチップの量と賭け金
                 for (int i = 0; i < numAlive; i++) {
                     MemberInfo* tmp = NextMember(members, i);
                     printf("name is %s | stake : %d | chip : %d\n", tmp->name, tmp->stake, tmp->chip);
 
                 }
-
+                printf("212\n");
                 //アクションの選択
                 isFoolProof = true;
                 while (isFoolProof) {
@@ -270,9 +274,12 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
 
                     break;
                 }
+                if (numAlive == 1) {
+                    isAllFold = true;
 
+                    break;
+                }
                 //メンバーの交代
-
                 char changemember = 0;
                 do {
                     printf("メンバーを%sに交代します[y/n]:", currBetMember->nextMember->name);
@@ -288,7 +295,13 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
                 MoveChip(&(members[i].stake), &pot, members[i].stake);
             }
             necessaryCallChip = 0;
+            if (isAllFold) {
+                winner = NextMember(members, 0);
+                printf("勝者は%s\n", winner->name);
+                MoveChip(&pot, &winner->chip, pot);
+                break;
 
+            }
             
             if (round == 4) {   //ラウンド４
                 //ショーダウン
