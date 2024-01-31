@@ -72,7 +72,7 @@ int MakeMember(MemberInfo** memberPtr) {
     printf("プレイヤーの人数を入力：");
     scanf("%d", &playerCount);
 
-    printf("comの人数を入力：\n");
+    printf("comの人数を入力：");
     scanf("%d", &comCount);
     
     memberCount = playerCount + comCount;
@@ -152,7 +152,7 @@ MemberInfo* poker(MemberInfo* members, int numMembers) { //ポーカー
 
    
     //1ゲームごとのループ 
-    for(game = 1; numAlive >= 1/*2*/; game++) {
+    for(game = 1; numAlive >= 2; game++) {
         //アンティ（実装するかは未確定）
         printf("アンティ：%d\n", ante);        
         for (int i = 0; i < numAlive; i++) {
